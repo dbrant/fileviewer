@@ -45,7 +45,7 @@ var FileFormatList = [
         [ "tiff.js", "fileJpg.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0xFF) && (reader.byteAt(1) == 0xD8) && (reader.byteAt(2) == 0xFF)
-                && (reader.byteAt(3) == 0xE0 || reader.byteAt(3) == 0xE1 || reader.byteAt(3) == 0xFE)){
+                && (reader.byteAt(3) == 0xE0 || reader.byteAt(3) == 0xE1 || reader.byteAt(3) == 0xFE)) {
                 this.canPreviewNatively = true;
                 return true;
             }
@@ -58,7 +58,20 @@ var FileFormatList = [
         [ "filePng.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x89) && (reader.byteAt(1) == 0x50)
-                && (reader.byteAt(2) == 0x4E) && (reader.byteAt(3) == 0x47)){
+                && (reader.byteAt(2) == 0x4E) && (reader.byteAt(3) == 0x47)) {
+                this.canPreviewNatively = true;
+                return true;
+            }
+            return false;
+        }),
+
+    new FileFormat("gif",
+        "Lossless format widely used for storing graphics on the web.",
+        "",
+        [ "fileGif.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0x47) && (reader.byteAt(1) == 0x49)
+                && (reader.byteAt(2) == 0x46) && (reader.byteAt(3) == 0x38) && (reader.byteAt(5) == 0x61)) {
                 this.canPreviewNatively = true;
                 return true;
             }
@@ -89,7 +102,7 @@ var FileFormatList = [
         [ "filePnm.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x50) && (reader.byteAt(1) >= 0x31) && (reader.byteAt(1) <= 0x36)
-                && ((reader.byteAt(2) == 0xA) || (reader.byteAt(2) == 0xD) || (reader.byteAt(2) == 0x20))){
+                && ((reader.byteAt(2) == 0xA) || (reader.byteAt(2) == 0xD) || (reader.byteAt(2) == 0x20))) {
                 return true;
             }
             return false;
@@ -100,7 +113,7 @@ var FileFormatList = [
         "",
         [ "fileMov.js" ],
         function(reader) {
-            if ((reader.byteAt(4) == 0x66) && (reader.byteAt(5) >= 0x74) && (reader.byteAt(6) <= 0x79) && (reader.byteAt(7) == 0x70)){
+            if ((reader.byteAt(4) == 0x66) && (reader.byteAt(5) >= 0x74) && (reader.byteAt(6) <= 0x79) && (reader.byteAt(7) == 0x70)) {
                 return true;
             }
             return false;
@@ -111,7 +124,7 @@ var FileFormatList = [
         "",
         [ "bpgdec8.js", "fileBpg.js" ],
         function(reader) {
-            if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) >= 0x50) && (reader.byteAt(2) <= 0x47) && (reader.byteAt(3) == 0xFB)){
+            if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) >= 0x50) && (reader.byteAt(2) <= 0x47) && (reader.byteAt(3) == 0xFB)) {
                 return true;
             }
             return false;
