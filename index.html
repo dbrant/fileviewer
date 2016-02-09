@@ -147,7 +147,7 @@
             var canvas = $("#previewCanvas")[0];
             canvas.width = width;
             canvas.height = height;
-            var scaledHeight = 320;
+            var scaledHeight = height > 320 ? 320 : height;
             var scaledWidth = width * (scaledHeight / height);
             canvas.style.width = scaledWidth.toString() + "px";
             canvas.style.height = scaledHeight.toString() + "px";
