@@ -91,6 +91,16 @@ window.BPGDecoder=function(a) {
     this.loop_count = 0
 };
 
+/*
+ Modified by Dmitry Brant (http://fileviewer.org) from the original found at:
+ http://webencoder.libbpg.org/show.html
+
+ Modifications made:
+ - Refactored several variables so they don't conflict with jQuery.
+ - Removed code that automatically replaces <img> tags with .bpg sources.
+ - Removed usage of XMLHttpRequest, and instead pass buffer directly.
+*/
+
 window.BPGDecoder.prototype= {
     r: _bpg004.cwrap("malloc", "number", ["number"]),
     o: _bpg004.cwrap("free", "void", ["number"]),
