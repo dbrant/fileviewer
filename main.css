@@ -1,0 +1,98 @@
+﻿
+body {
+    margin: 16px;
+    font-family: 'Raleway',sans-serif;
+}
+
+h1 {
+    font-size: 300%;
+}
+
+#holder {
+    background: url("preview_bak1.png");
+    background-clip: padding-box;
+    border: 8px dashed #ccc;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+}
+#holder.hover {
+    border: 8px dashed #333;
+}
+
+.centered {
+    margin: auto;
+    text-align: center;
+}
+
+.topcontainer {
+    margin: 8px;
+    padding: 8px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+}
+
+.intro {
+    padding: 16px;
+}
+
+.status {
+    font-weight: bold;
+    background: rgba(255, 255, 128, 0.4);
+    border-radius: 4px;
+    margin: 16px;
+    padding: 16px;
+}
+
+.previewcontainer {
+    padding: 8px;
+}
+
+.buttonLink {
+    padding: 8px;
+    color: #fff;
+    background: #678;
+    border-radius: 4px;
+}
+.buttonLink a {
+    color: #fff;
+    text-decoration: none;
+}
+.browseButton {
+    background: #68e;
+}
+
+.previewImage {
+    max-width: 400px;
+    max-height: 300px;
+    vertical-align: middle;
+}
+
+.basicinfo {
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 8px;
+    margin: 16px;
+    padding: 16px;
+}
+
+.detailedinfo {
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 8px;
+    font-family: monospace;
+    margin: 16px;
+    padding: 16px;
+}
+
+.infoKey {
+    font-weight: bold;
+}
+
+.detailKey {
+    color: #444;
+    font-size: 120%;
+}
+
+.detailValue {
+    font-weight: bold;
+    font-size: 120%;
+}

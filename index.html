@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset=utf-8>
+<title>FileViewer</title>
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400|Open Sans:400|Pacifico:400&amp;subset=latin" type="text/css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script>
+
+        $(document).ready(function() {
+            downloadScripts([ "fileformats.js", "datareader.js" ], onAllScriptsLoaded);
+        });
+
+        function downloadScripts(scripts, callbackFunc) {
+            if (scripts.length == 0) {
+                callbackFunc();
+                return;
+            }
+            var script = document.createElement('script');
+            script.src = scripts.shift();
+            console.log("downloading script: " + script.src);
+            script.onload = function(){
+                downloadScripts(scripts, callbackFunc);
+            };
+            document.head.appendChild(script);
+        }
+
+        function onAllScriptsLoaded() {
+            var holder = $("#holder");
+            var fileReaderStatus = $("#fileReaderStatus");
+
+            if (typeof window.FileReader === 'undefined') {
+                fileReaderStatus.html('Error: File API and/or FileReader API not supported.');
+                $("#topContainer").hide();
+                return;
+            } else {
+                fileReaderStatus.hide();
+            }
+
+            $("#fileBrowseInput").on("change", function(event) {
+                processFile(event.target.files[0]);
+            });
+            $("#fileBrowseButton").on("click", function(event) {
+                document.getElementById("fileBrowseInput").click();
+            });
+
+            $("#savePngLink").on("click", function(event) {
+                $("#savePngLink")[0].href = $("#previewCanvas")[0].toDataURL("image/png");
+            });
+            $("#saveJpgLink").on("click", function(event) {
+                $("#saveJpgLink")[0].href = $("#previewCanvas")[0].toDataURL("image/jpeg");
+            });
+
+            holder.on("dragover", function(event) {
+                        event.preventDefault();
+                        if(!holder.hasClass("dragover")) {
+                            holder.addClass("hover");
+                        }
+                    })
+                    .on("dragend", function(event) {
+                        event.preventDefault();
+                        holder.removeClass("hover");
+                    })
+                    .on("dragleave", function(event) {
+                        event.preventDefault();
+                        holder.removeClass("hover");
+                    })
+                    .on("drop", function(event) {
+                        event.preventDefault();
+                        holder.removeClass("hover");
+                        if (!event.originalEvent.dataTransfer) {
+                            console.log("No data found in dropped object.");
+                            return;
+                        }
+                        processFile(event.originalEvent.dataTransfer.files[0]);
+                    });
+        }
+
+        function processFile(file) {
+            if(file == null){
+                console.log("Whatever was dropped is not a file.");
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (event) {
+                var buf = event.target.result;
+                var dataView = new DataView(buf);
+                var reader = new DataReader(dataView);
+
+                clearCanvas();
+
+                reader.onGetPreviewImage = function(imageSrc) {
+                    if ( !format.canPreviewNatively) {
+                        drawImageOnCanvas(imageSrc);
+                    }
+                };
+                reader.onGetPreviewBitmap = function(imageData) {
+                    resizeCanvas(imageData.width, imageData.height);
+                    $("#previewCanvas")[0].getContext('2d').putImageData(imageData, 0, 0);
+                };
+                reader.getCanvasContext = function() {
+                    return $("#previewCanvas")[0].getContext('2d');
+                };
+
+                var format = detectFileFormat(reader);
+                layoutFileInfo(file, format);
+
+                parseFormat = undefined;
+                if (!format.parseFunc) {
+                    if (format.detectScripts) {
+                        downloadScripts(format.detectScripts, function () {
+                            format.parseFunc = parseFormat;
+                            layoutParseResults(format.parseFunc(reader));
+                        });
+                    } else {
+                        layoutParseResults(new ResultNode());
+                    }
+                } else {
+                    console.log("using cached script...");
+                    layoutParseResults(format.parseFunc(reader));
+                }
+
+                if (format.canPreviewNatively) {
+                    console.log("previewing natively...");
+                    var urlReader = new FileReader();
+                    urlReader.onload = function (event) {
+                        console.log("drawing image...");
+                        drawImageOnCanvas(event.target.result);
+                    };
+                    urlReader.readAsDataURL(file);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function drawImageOnCanvas(imageSrc) {
+            var img = new Image;
+            img.src = imageSrc;
+            img.onload = function() {
+                resizeCanvas(img.width, img.height);
+                $("#previewCanvas")[0].getContext('2d').drawImage(img, 0, 0);
+            };
+        }
+
+        function resizeCanvas(width, height) {
+            var canvas = $("#previewCanvas")[0];
+            canvas.width = width;
+            canvas.height = height;
+            var scaledHeight = 600;
+            var scaledWidth = width * (scaledHeight / height);
+            canvas.style.width = scaledWidth.toString() + "px";
+            canvas.style.height = scaledHeight.toString() + "px";
+        }
+
+        function clearCanvas() {
+            var canvas = $("#previewCanvas")[0];
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function getKeyValueInfoItem(key, value) {
+            var result = "<li>";
+            result += "<span class='infoKey'>" + key + "</span>";
+            if (value.length > 0) {
+                result += " &mdash; <span class='infoValue'>" + value + "</span>";
+            }
+            result += "</li>";
+            return result;
+        }
+
+        function layoutFileInfo(file, format) {
+            var basicInfoDiv = $("#basicInfo");
+            var fileExt = file.name.split('.').pop().toLowerCase();
+            var resultStr = "<ul>";
+            resultStr += getKeyValueInfoItem("File name", file.name);
+            resultStr += getKeyValueInfoItem("File extension", fileExt.toUpperCase());
+            resultStr += getKeyValueInfoItem("File size", file.size.toString());
+            resultStr += getKeyValueInfoItem("Modified date", file.lastModifiedDate.toString());
+            if (format) {
+                resultStr += getKeyValueInfoItem("Detected format", format.ext.toUpperCase() + " &mdash; " + format.shortDesc);
+            }
+            basicInfoDiv.html(resultStr);
+        }
+
+        function layoutParseResults(results) {
+            var html = layoutResultNodes(results.nodes);
+            $("#detailedInfo").html(html);
+        }
+
+        function layoutResultNodes(nodes) {
+            var html = "<ul>";
+            for (var i = 0; i < nodes.length; i++) {
+                html += "<li>";
+                html += "<span class='detailKey'>" + nodes[i].key + "</span>";
+                if (nodes[i].value.length > 0) {
+                    html += ": <span class='detailValue'>" + nodes[i].value + "</span>";
+                }
+                if (nodes[i].nodes.length > 0) {
+                    html += layoutResultNodes(nodes[i].nodes);
+                }
+                html += "</li>";
+            }
+            html += "</ul>";
+            return html;
+        }
+
+    </script>
+</head>
+<body>
+
+<h1 class="centered">File Viewer</h1>
+
+<div class="intro centered">
+    Drag a file from your desktop on to the drop zone below to see its contents and internal structure.
+</div>
+
+<div class="status centered" id="fileReaderStatus">
+    Loading...
+</div>
+
+<div class="topcontainer" id="topContainer">
+
+    <div class="previewcontainer">
+        <div id="holder">
+            <canvas class="centered" id="previewCanvas" width="320px" height="240px"></canvas>
+        </div>
+
+        <div style="text-align:center">
+            <input type="file" id="fileBrowseInput" name="fileBrowse" style="display: none" />
+            <span class="buttonLink browseButton"><a href="#" id="fileBrowseButton">Browse...</a></span>
+            <span class="buttonLink"><a href="#" id="savePngLink" target="_blank">Save as PNG</a></span>
+            <span class="buttonLink"><a href="#" id="saveJpgLink" target="_blank">Save as JPG</a></span>
+        </div>
+    </div>
+
+    <div class="infocontainer">
+        <div class="basicinfo" id="basicInfo">
+            Basic file info
+        </div>
+    </div>
+
+    <div class="detailedinfo" id="detailedInfo">
+        Detailed file info
+    </div>
+
+</div>
+
+<div class="footer centered">
+    Copyright 2016 <a href="http://dmitrybrant.com">Dmitry Brant</a>. All rights reserved.
+</div>
+
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-39339602-4']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>
