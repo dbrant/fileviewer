@@ -18,7 +18,7 @@
                 return;
             }
             var script = document.createElement('script');
-            script.src = scripts.shift();
+            script.src = "js/" + scripts.shift();
             console.log("downloading script: " + script.src);
             script.onload = function(){
                 downloadScripts(scripts, callbackFunc);
@@ -147,7 +147,7 @@
             var canvas = $("#previewCanvas")[0];
             canvas.width = width;
             canvas.height = height;
-            var scaledHeight = 600;
+            var scaledHeight = 320;
             var scaledWidth = width * (scaledHeight / height);
             canvas.style.width = scaledWidth.toString() + "px";
             canvas.style.height = scaledHeight.toString() + "px";
