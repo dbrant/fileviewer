@@ -89,7 +89,7 @@ function parseFormat(reader)
                 var imgHeight = stream.readShortLe();
                 var imgFlags = stream.readByte();
                 node.add("Width", imgWidth);
-                node.add("Height", imgWidth);
+                node.add("Height", imgHeight);
 
                 if ((imgFlags & 0x80) != 0) {
                     //local color table...
