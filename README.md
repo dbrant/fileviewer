@@ -16,12 +16,12 @@ This framework is intended to be extensible. That is, I've tried to make it as e
 - If you look in the `fileformats.js` file, you'll see the master `FileFormatList` structure that is composed of `FileFormat` objects.
 - Make a duplicate of one of the `FileFormat` objects, and add it to the end of the `FileFormatList` structure.
 - The parameters for the `FileFormat` are as follows, in order:
--- File extension associated with this format.
--- Short description of this format (preferably without HTML).
--- Long description of this format (HTML encouraged).
--- Short description of this format.
--- List of scripts to be loaded for processing this format. One of these scripts must contain a `parseFormat` function (see below).
--- Detector function for detecting whether a given file matches this format. This is where you can test the first few bytes of the file for any "magic" header that positively identifies the file as having your format. Return `true` for a positive match, or `false` otherwise.
+    - File extension associated with this format.
+    - Short description of this format (preferably without HTML).
+    - Long description of this format (HTML encouraged).
+    - Short description of this format.
+    - List of scripts to be loaded for processing this format. One of these scripts must contain a `parseFormat` function (see below).
+    - Detector function for detecting whether a given file matches this format. This is where you can test the first few bytes of the file for any "magic" header that positively identifies the file as having your format. Return `true` for a positive match, or `false` otherwise.
 
 ### The `parseFormat` function
 
@@ -30,6 +30,7 @@ The `DataReader` provides convenient, abstract methods for reading all kinds of 
 
 The return value of the `parseFormat` function must be an instance of `ResultNode`, which is a key-value pair object (both of which are strings), which will be displayed in the output page. A `ResultNode` can have child `ResultNode`s, meaning that you can create a tree of resulting key-value pairs that describe the binary format that you're parsing.
 
+----
 
 Copyright &copy; 2016 Dmitry Brant
 
