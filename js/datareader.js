@@ -206,6 +206,13 @@ var DataStream = function(dReader, initialOffset) {
         return r;
     };
 
+    this.readBytes = function(length) {
+        var bytes = [];
+        for (var i = 0; i < length; i++) {
+            bytes.push(this.readByte());
+        }
+        return bytes;
+    };
 
     this.readAsciiString = function(length) {
         var result = "";

@@ -16,8 +16,8 @@
  */
 
 var ResultNode = function(key, value) {
-    this.key = key ? key.toString() : "";
-    this.value = value ? value.toString() : "";
+    this.key = key !== undefined ? key.toString() : "";
+    this.value = value !== undefined ? value.toString() : "";
     this.nodes = [];
 
     this.add = function(key, value) {
@@ -128,8 +128,16 @@ var FileFormatList = [
                 return true;
             }
             return false;
-        })
+        }),
 
+    new FileFormat("tga",
+        "Truevision TARGA graphics file.",
+        "",
+        [ "fileTga.js" ],
+        function(reader) {
+            // only detectable via extension
+            return false;
+        })
 ];
 
 var UnknownFileFormat = new FileFormat("", "Unknown file type", "", null, function() {
@@ -144,8 +152,21 @@ function detectFileFormat(reader) {
             break;
         }
     }
-    if (detectedFormat === null) {
-        detectedFormat = UnknownFileFormat;
+    return detectedFormat;
+}
+
+function detectFileFormatByExt(fileName) {
+    var detectedFormat = null;
+    var nameArr = fileName.split('.');
+    if (nameArr == null || nameArr.length == 0) {
+        return detectedFormat;
+    }
+    var extension = nameArr[nameArr.length - 1].toUpperCase();
+    for (var i = 0; i < FileFormatList.length; i++) {
+        if (FileFormatList[i].ext.toUpperCase() === extension) {
+            detectedFormat = FileFormatList[i];
+            break;
+        }
     }
     return detectedFormat;
 }

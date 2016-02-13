@@ -97,13 +97,21 @@
                 };
                 reader.onGetPreviewBitmap = function(imageData) {
                     resizeCanvas(imageData.width, imageData.height);
-                    $("#previewCanvas")[0].getContext('2d').putImageData(imageData, 0, 0);
+                    var context = $("#previewCanvas")[0].getContext('2d');
+                    context.putImageData(imageData, 0, 0);
                 };
                 reader.getCanvasContext = function() {
                     return $("#previewCanvas")[0].getContext('2d');
                 };
 
                 var format = detectFileFormat(reader);
+                if (format == null) {
+                    format = detectFileFormatByExt(file.name);
+                }
+                if (format == null) {
+                    format = UnknownFileFormat;
+                }
+
                 layoutFileInfo(file, format);
 
                 parseFormat = undefined;
@@ -183,7 +191,7 @@
         }
 
         function layoutParseResults(results) {
-            var html = layoutResultNodes(results.nodes);
+            var html = results != null ? layoutResultNodes(results.nodes) : "";
             $("#detailedInfo").html(html);
         }
 
