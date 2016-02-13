@@ -128,6 +128,18 @@ var DataStream = function(dReader, initialOffset) {
         }
     };
 
+    this.seek = function(offset, whence) {
+        if (whence == 0) {
+            this.reset();
+            this.skip(offset);
+        } else if (whence == 1) {
+            this.skip(offset);
+        } else if (whence == 2) {
+            this.reset();
+            this.skip(this.length() + offset);
+        }
+    };
+
     this.readByte = function() {
         var b = this.reader.byteAt(this.position);
         this.position++;

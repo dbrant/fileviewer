@@ -137,6 +137,18 @@ var FileFormatList = [
         function(reader) {
             // only detectable via extension
             return false;
+        }),
+
+    new FileFormat("pcx",
+        "ZSoft Paintbrush graphics.",
+        "",
+        [ "filePcx.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0xA) && ((reader.byteAt(1) == 0x3) || (reader.byteAt(1) == 0x5)) && (reader.byteAt(2) == 0x1)
+                && ((reader.byteAt(3) == 0x8) || (reader.byteAt(3) == 0x4) || (reader.byteAt(3) == 0x2) || (reader.byteAt(3) == 0x1))) {
+                return true;
+            }
+            return false;
         })
 ];
 
