@@ -87,8 +87,6 @@ function parseFormat(reader)
             }
         }
 
-        //byte[] bmpData = new byte[(imgWidth + 1) * 4 * imgHeight];
-
         stream.seek(128, 0);
 
         x = 0;

@@ -149,6 +149,18 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("sgi",
+        "Silicon Graphics images (.RGB, .BW).",
+        "",
+        [ "fileSgi.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0x1) && (reader.byteAt(1) == 0xDA) && (reader.byteAt(2) == 0x1)
+                && (reader.byteAt(3) == 0x1) && (reader.byteAt(4) == 0x0)) {
+                return true;
+            }
+            return false;
         })
 ];
 
