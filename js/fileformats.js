@@ -161,6 +161,17 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("ras",
+        "Sun Raster image.",
+        "",
+        [ "fileRas.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0x59) && (reader.byteAt(1) == 0xA6) && (reader.byteAt(2) == 0x6A) && (reader.byteAt(3) == 0x95)) {
+                return true;
+            }
+            return false;
         })
 ];
 
