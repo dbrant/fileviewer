@@ -29,7 +29,26 @@ function parseFormat(reader)
         var totalSize = stream.readUIntBe();
         var riffType = stream.readAsciiString(4);
 
-        results.add("RIFF type", riffType);
+        var node = results.add("RIFF type", riffType);
+
+        while (!stream.eof()) {
+            var blockName = stream.readAsciiString(4);
+            var blockSize = stream.readUIntLe();
+
+            var subnode = node.add(blockName, blockSize.toString() + " bytes");
+
+            if (blockName == "fmt " && (riffType == "WAVE" || riffType == "RMP3")) {
+                subnode.add("Audio format", stream.readUShortLe());
+                subnode.add("Number of channels", stream.readUShortLe());
+                subnode.add("Sample rate", stream.readUIntLe());
+                subnode.add("Byte rate", stream.readUIntLe());
+                subnode.add("Block align", stream.readUShortLe());
+                subnode.add("Bits per sample", stream.readUShortLe());
+                blockSize -= 16;
+            }
+
+            stream.skip(blockSize);
+        }
 
     } catch(e) {
 		console.log("Error while reading RIFF: " + e);
