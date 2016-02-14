@@ -1,0 +1,38 @@
+/*
+ Copyright (c) 2016 Dmitry Brant.
+ http://dmitrybrant.com
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+function parseFormat(reader)
+{
+	var results = new ResultNode("BMP structure");
+	try {
+		var stream = new DataStream(reader);
+        if (stream.readAsciiString(2) != "BM") {
+            throw "This is not a valid BMP file.";
+        }
+
+        stream.skip(16);
+        var imgWidth = stream.readUIntLe();
+        var imgHeight = stream.readUIntLe();
+
+        results.add("Width", imgWidth);
+        results.add("Height", imgHeight);
+
+    } catch(e) {
+		console.log("Error while reading BMP: " + e);
+	}
+	return results;
+}

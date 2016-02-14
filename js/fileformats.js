@@ -172,6 +172,18 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("bmp",
+        "Windows or OS/2 bitmap.",
+        "",
+        [ "fileBmp.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) == 0x4D) && (reader.byteAt(6) == 0x0) && (reader.byteAt(8) == 0x0)) {
+                this.canPreviewNatively = true;
+                return true;
+            }
+            return false;
         })
 ];
 
