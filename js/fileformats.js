@@ -184,7 +184,60 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("", "", "",
+        [ "fileRiff.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0x52) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x46) && (reader.byteAt(3) == 0x46)) {
+                var riffType = reader.getAsciiStringAt(8, 4);
+                if (riffType == "AVI ") {
+                    this.ext = "avi";
+                    this.shortDesc = "Audio Video Interleave format.";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
+                } else if (riffType == "WAVE" || riffType == "RMP3") {
+                    this.ext = "wav";
+                    this.shortDesc = "Windows wave audio.";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
+                } else if (riffType == "ACON") {
+                    this.ext = "avi";
+                    this.shortDesc = "";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
+                } else if (riffType == "RMID") {
+                    this.ext = "mid";
+                    this.shortDesc = "";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
+                } else if (riffType == "CDXA") {
+                    this.ext = "cdxa";
+                    this.shortDesc = "";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
+                } else if (riffType.indexOf("CDR") >= 0 || riffType == "cdr6") {
+                    this.ext = "cdr";
+                    this.shortDesc = "CorelDraw image.";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
+                } else if (riffType == "WEBP") {
+                    this.ext = "webp";
+                    this.shortDesc = "WebP image format.";
+                    this.longDesc = "";
+                    this.canPreviewNatively = true;
+                } else {
+                    this.ext = "riff";
+                    this.shortDesc = "General RIFF container format.";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
+                }
+                return true;
+            }
+            return false;
         })
+
+
 ];
 
 var UnknownFileFormat = new FileFormat("", "Unknown file type", "", null, function() {
