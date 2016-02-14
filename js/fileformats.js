@@ -24,6 +24,11 @@ var ResultNode = function(key, value) {
         var node = new ResultNode(key, value);
         this.nodes.push(node);
         return node;
+    };
+
+    this.addResult = function(node) {
+        this.nodes.push(node);
+        return node;
     }
 };
 
@@ -233,6 +238,19 @@ var FileFormatList = [
                     this.canPreviewNatively = false;
                 }
                 return true;
+            }
+            return false;
+        }),
+
+    new FileFormat("raf",
+        "Fujifilm raw image.",
+        "",
+        [ "tiff.js", "fileJpg.js", "fileRaf.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0x46) && (reader.byteAt(1) == 0x55) && (reader.byteAt(2) == 0x4A) && (reader.byteAt(3) == 0x49)) {
+                if ((reader.byteAt(12) == 0x52) && (reader.byteAt(13) == 0x41) && (reader.byteAt(14) == 0x57) && (reader.byteAt(15) == 0x20)
+                    && (reader.byteAt(16) == 0x30) && (reader.byteAt(17) == 0x32) && (reader.byteAt(18) == 0x30) && (reader.byteAt(19) == 0x31))
+                    return true;
             }
             return false;
         })

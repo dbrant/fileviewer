@@ -17,10 +17,18 @@ limitations under the License.
 
 function parseFormat(reader)
 {
-	var results = new ResultNode("JPEG structure");
+    return parseJpgStructure(reader);
+}
 
-	try {
+function parseJpgStructure(reader, offset)
+{
+    var results = new ResultNode("JPEG structure");
+
+    try {
         var stream = new DataStream(reader);
+        if (offset !== undefined) {
+            stream.skip(offset);
+        }
 
         var segmentStart;
         var segmentType;
@@ -184,11 +192,10 @@ function parseFormat(reader)
 
         }
     } catch(e) {
-		console.log("Error while reading JPG: " + e);
-	}
+        console.log("Error while reading JPG: " + e);
+    }
     return results;
 }
-
 
 function getJpgSegmentStr(id)
 {
