@@ -249,12 +249,24 @@ var FileFormatList = [
         function(reader) {
             if ((reader.byteAt(0) == 0x46) && (reader.byteAt(1) == 0x55) && (reader.byteAt(2) == 0x4A) && (reader.byteAt(3) == 0x49)) {
                 if ((reader.byteAt(12) == 0x52) && (reader.byteAt(13) == 0x41) && (reader.byteAt(14) == 0x57) && (reader.byteAt(15) == 0x20)
-                    && (reader.byteAt(16) == 0x30) && (reader.byteAt(17) == 0x32) && (reader.byteAt(18) == 0x30) && (reader.byteAt(19) == 0x31))
+                    && (reader.byteAt(16) == 0x30) && (reader.byteAt(17) == 0x32) && (reader.byteAt(18) == 0x30) && (reader.byteAt(19) == 0x31)) {
                     return true;
+                }
+            }
+            return false;
+        }),
+
+    new FileFormat("xpm",
+        "X PixMap icon.",
+        "",
+        [ "fileXpm.js" ],
+        function(reader) {
+            if ((reader.byteAt(0) == 0x2F) && (reader.byteAt(1) == 0x2A) && (reader.byteAt(2) == 0x20)
+                && (reader.byteAt(3) == 0x58) && (reader.byteAt(4) == 0x50) && (reader.byteAt(5) == 0x4D)) {
+                return true;
             }
             return false;
         })
-
 
 ];
 
