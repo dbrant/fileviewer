@@ -266,6 +266,18 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("dicom",
+        "DICOM (Digital Imaging and Communications in Medicine) image.",
+        "",
+        [ "fileDicom.js" ],
+        function(reader) {
+            if ((reader.byteAt(0x80) == 0x44) && (reader.byteAt(0x81) == 0x49) && (reader.byteAt(0x82) == 0x43)
+                && (reader.byteAt(0x83) == 0x4D) && (reader.byteAt(0x84) == 0x2) && (reader.byteAt(0x85) == 0x0)) {
+                return true;
+            }
+            return false;
         })
 
 ];
