@@ -4,7 +4,7 @@
 <meta charset=utf-8>
 <title>FileViewer</title>
     <link rel="stylesheet" href="main.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Coming%20Soon:400|Open Sans:400|Pacifico:400&amp;subset=latin" type="text/css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Dancing Script:400&amp;subset=latin" type="text/css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <script>
 
@@ -68,6 +68,8 @@
                     })
                     .on("drop", function(event) {
                         event.preventDefault();
+                        $("#drophint").hide();
+                        $("#previewCanvas").show();
                         holder.removeClass("hover");
                         if (!event.originalEvent.dataTransfer) {
                             console.log("No data found in dropped object.");
@@ -217,9 +219,10 @@
 <body>
 
 <h1 class="centered">File Viewer</h1>
-
-<div class="intro centered">
-    Drag a file from your desktop on to the drop zone below to see its contents and internal structure.
+<div id="topMenu hidden">
+    <a class="menuLink">Supported file types</a>
+    |
+    <a class="menuLink">About</a>
 </div>
 
 <div class="status centered" id="fileReaderStatus">
@@ -230,10 +233,11 @@
 
     <div class="previewcontainer">
         <div id="holder">
-            <canvas class="centered" id="previewCanvas" width="320px" height="240px"></canvas>
+            <span id="drophint">Drag-and-drop a file here</span>
+            <canvas class="centered hidden" id="previewCanvas" width="320px" height="240px"></canvas>
         </div>
 
-        <div style="text-align:center">
+        <div style="text-align:right">
             <input type="file" id="fileBrowseInput" name="fileBrowse" style="display: none" />
             <span class="buttonLink browseButton"><a href="#" id="fileBrowseButton">Browse...</a></span>
             <span class="buttonLink"><a href="#" id="savePngLink" target="_blank">Save as PNG</a></span>

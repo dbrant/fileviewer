@@ -1,11 +1,40 @@
 ﻿
 body {
-    margin: 16px;
-    font-family: 'Coming Soon',sans-serif;
+    margin: 0;
+    font-family: sans-serif;
+    background: #454;
+    color: #e0e0e0;
+}
+
+a {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
 }
 
 h1 {
-    font-size: 300%;
+    font-family: 'Dancing Script',sans-serif;
+    font-size: 400%;
+    color: #fff;
+    background: #686;
+    padding: 8px;
+}
+
+#topMenu {
+    background: #575;
+    text-align: right;
+    padding: 8px;
+}
+
+.menuLink {
+    padding: 8px;
+}
+.menuLink.hover {
+    background: #343;
+}
+
+.footer {
+    padding: 16px;
 }
 
 #holder {
@@ -15,10 +44,22 @@ h1 {
     border-radius: 8px;
     margin-bottom: 16px;
     min-height: 240px;
+    text-align: center;
+    vertical-align: middle;
     display: flex;
 }
 #holder.hover {
     border: 8px dashed #333;
+}
+
+#drophint {
+    font-family: 'Dancing Script',sans-serif;
+    padding-top: 84px;
+    width: 100%;
+    font-size: 300%;
+    font-weight: bold;
+    color: #aaa;
+    text-align: center;
 }
 
 .centered {
@@ -26,15 +67,15 @@ h1 {
     text-align: center;
 }
 
-.topcontainer {
-    margin: 8px;
-    padding: 8px;
-    border: 2px solid #eee;
-    border-radius: 8px;
+.hidden {
+    display: none;
 }
 
-.intro {
-    padding: 16px;
+.topcontainer {
+    margin: 16px;
+    padding: 8px;
+    background: #fff;
+    border-radius: 8px;
 }
 
 .status {
@@ -55,10 +96,11 @@ h1 {
     background: #678;
     border-radius: 4px;
 }
+
 .buttonLink a {
-    color: #fff;
-    text-decoration: none;
+    font-weight: normal;
 }
+
 .browseButton {
     background: #68e;
 }
@@ -70,14 +112,16 @@ h1 {
 }
 
 .basicinfo {
-    background: rgba(128, 128, 128, 0.2);
+    background: #f4f4f4;
+    color: #444;
     border-radius: 8px;
     margin: 16px;
     padding: 16px;
 }
 
 .detailedinfo {
-    background: rgba(128, 128, 128, 0.2);
+    background: #f4f4f4;
+    color: #444;
     border-radius: 8px;
     font-family: monospace;
     margin: 16px;
