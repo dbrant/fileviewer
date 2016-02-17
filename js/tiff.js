@@ -70,8 +70,7 @@ function getEntryContents32(entry, stream, bigEndian) {
     else
     {
         //looks like we have to get it the hard way...
-        stream.reset();
-        stream.skip(entry.valueOffset);
+        stream.seek(entry.valueOffset, 0);
         for (i = 0; i < entry.numValues; i++)
         {
             if (tiffTypeSize[entry.fieldType] == 1)
@@ -118,8 +117,7 @@ function getEntryContents32Signed(entry, stream, bigEndian) {
     else
     {
         //looks like we have to get it the hard way...
-        stream.reset();
-        stream.skip(entry.valueOffset);
+        stream.seek(entry.valueOffset, 0);
         for (i = 0; i < entry.numValues; i++)
         {
             if (tiffTypeSize[entry.fieldType] == 1)
@@ -145,8 +143,7 @@ function getEntryContentsRational(entry, stream, bigEndian) {
     if (entry.numValues > 1024) {
         return ret;
     }
-    stream.reset();
-    stream.skip(entry.valueOffset);
+    stream.seek(entry.valueOffset, 0);
     for (var i = 0; i < entry.numValues; i++)
     {
         var numerator = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
@@ -164,8 +161,7 @@ function getEntryContentsRationalSigned(entry, stream, bigEndian) {
     if (entry.numValues > 1024) {
         return ret;
     }
-    stream.reset();
-    stream.skip(entry.valueOffset);
+    stream.seek(entry.valueOffset, 0);
     for (var i = 0; i < entry.numValues; i++)
     {
         var numerator = bigEndian ? stream.readIntBe() : stream.readIntLe();
@@ -188,8 +184,7 @@ function getEntryContentsFloat(entry, stream, bigEndian) {
         (new Uint32Array(buf))[0] = entry.valueOffset;
         ret.push((new Float32Array(buf))[0]);
     } else {
-        stream.reset();
-        stream.skip(entry.valueOffset);
+        stream.seek(entry.valueOffset, 0);
         for (var i = 0; i < entry.numValues; i++) {
             ret.push(bigEndian ? stream.readFloatBe() : stream.readFloatLe());
         }
@@ -202,8 +197,7 @@ function getEntryContentsDouble(entry, stream, bigEndian) {
     if (entry.numValues > 1024) {
         return ret;
     }
-    stream.reset();
-    stream.skip(entry.valueOffset);
+    stream.seek(entry.valueOffset, 0);
     for (var i = 0; i < entry.numValues; i++) {
         ret.push(bigEndian ? stream.readDoubleBe() : stream.readDoubleLe());
     }
@@ -227,9 +221,7 @@ function getEntryContentsAscii(entry, stream, bigEndian) {
     }
     else
     {
-        // get it the hard way...
-        stream.reset();
-        stream.skip(entry.valueOffset);
+        stream.seek(entry.valueOffset, 0);
         ret = stream.readAsciiString(entry.numValues - 1);
     }
     return ret;
@@ -242,8 +234,7 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
     }
     var i;
 
-    stream.reset();
-    stream.skip(ifdOffset);
+    stream.seek(ifdOffset, 0);
 
     var numDirEntries = bigEndian ? stream.readUShortBe() : stream.readUShortLe();
     var entryList = [];
@@ -311,8 +302,7 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
         {
             //special handling for Makernote... (manufacturer-dependent!)
             if (entry.numValues > 16) {
-                stream.reset();
-                stream.skip(entry.valueOffset);
+                stream.seek(entry.valueOffset, 0);
 
                 var makerStr = stream.readAsciiString(4);
                 if (makerStr == "FUJI") {
