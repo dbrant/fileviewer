@@ -127,6 +127,10 @@ h1 {
     margin: 16px;
     padding: 16px;
 }
+.detailedinfo a {
+    color: #222;
+    text-decoration: underline;
+}
 
 .infoKey {
     font-weight: bold;

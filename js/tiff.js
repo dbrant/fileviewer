@@ -230,7 +230,7 @@ function getEntryContentsAscii(entry, stream, bigEndian) {
         // get it the hard way...
         stream.reset();
         stream.skip(entry.valueOffset);
-        ret = stream.readAsciiString(entry.numValues);
+        ret = stream.readAsciiString(entry.numValues - 1);
     }
     return ret;
 }
@@ -395,7 +395,11 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
             exifTag.tagID = entry.dirTag;
             exifTag.ifdTag = ifdTag;
             exifTag.makerNoteType = makerNoteType;
-            exifTag.tagContents = valStr;
+            if (tiffWikiLinkableTags.indexOf(exifTag.tagID) >= 0) {
+                exifTag.tagContents = "<a href='https://en.wikipedia.org/wiki/" + valStr + "' target='_blank'>" + valStr + "</a>";
+            } else {
+                exifTag.tagContents = valStr;
+            }
             tagList.push(exifTag);
         }
     }
@@ -451,6 +455,8 @@ function getTiffTagName(tag, ifdType, makernoteType) {
 }
 
 // ---------------------------------------------------------------------
+
+var tiffWikiLinkableTags = [ 0x10F, 0x110 ];
 
 var _tiffGpsIfdTags = function() {
     this.keys = [];
