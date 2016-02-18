@@ -25,6 +25,7 @@ var tiffDirEntry = function() {
 };
 
 var exifDataTag = function() {
+    this.subTags = [];
     this.tagID = 0;
     this.ifdTag = 0;
     this.makerNoteType = 0;
@@ -284,6 +285,13 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
         }
         else if ((entry.dirTag == 330) || (entry.dirTag == 34853) || (entry.dirTag == 40965) || (entry.dirTag == 34665))
         {
+            var exifTag = new exifDataTag();
+            exifTag.tagID = entry.dirTag;
+            exifTag.ifdTag = ifdTag;
+            exifTag.makerNoteType = makerNoteType;
+            exifTag.tagContents = "";
+            tagList.push(exifTag);
+
             //sub-ifd / GPS-ifd / Interop-ifd / EXIF-ifd
             var subIfdList = getEntryContents32(entry, stream, bigEndian);
             for (var subIfdIndex = 0; subIfdIndex < subIfdList.length; subIfdIndex++)
@@ -291,7 +299,7 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
                 var tempIfd = subIfdList[subIfdIndex];
                 for (var j = 0; j < 32; j++)
                 {
-                    tempIfd = parseTiffDir(stream, bigEndian, tempIfd, entry.dirTag, 0, 0, tagList, level + 1);
+                    tempIfd = parseTiffDir(stream, bigEndian, tempIfd, entry.dirTag, 0, 0, exifTag.subTags, level + 1);
                     if (tempIfd == 0) {
                         break;
                     }
@@ -300,6 +308,13 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
         }
         else if (entry.dirTag == 37500)
         {
+            var exifTag = new exifDataTag();
+            exifTag.tagID = entry.dirTag;
+            exifTag.ifdTag = ifdTag;
+            exifTag.makerNoteType = makerNoteType;
+            exifTag.tagContents = "";
+            tagList.push(exifTag);
+
             //special handling for Makernote... (manufacturer-dependent!)
             if (entry.numValues > 16) {
                 stream.seek(entry.valueOffset, 0);
@@ -308,7 +323,7 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
                 if (makerStr == "FUJI") {
                     stream.skip(4);
                     var fujiIfdOffset = stream.readUIntLe();
-                    parseTiffDir(stream, bigEndian, entry.valueOffset + fujiIfdOffset, entry.dirTag, entry.valueOffset, MakerNoteFujiFilm, tagList, level + 1);
+                    parseTiffDir(stream, bigEndian, entry.valueOffset + fujiIfdOffset, entry.dirTag, entry.valueOffset, MakerNoteFujiFilm, exifTag.subTags, level + 1);
                 }
                 else if (makerStr == "Niko") {
                     stream.skip(1);
@@ -326,7 +341,7 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
                         stream.skip(2);
                         var nikonIfdOffset = nikonEndian ? stream.readUIntBe() : stream.readUIntLe();
                         //(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, makerNoteType, tagList, level)
-                        parseTiffDir(stream, nikonEndian, entry.valueOffset + 10 + nikonIfdOffset, entry.dirTag, entry.valueOffset + 2 + nikonIfdOffset, MakerNoteNikon3, tagList, level + 1);
+                        parseTiffDir(stream, nikonEndian, entry.valueOffset + 10 + nikonIfdOffset, entry.dirTag, entry.valueOffset + 2 + nikonIfdOffset, MakerNoteNikon3, exifTag.subTags, level + 1);
                     }
                 }
             }
@@ -442,6 +457,41 @@ function getTiffTagName(tag, ifdType, makernoteType) {
         name = tag.toString() + " (0x" + tag.toString(16) + ")";
     }
     return name;
+}
+
+function tiffReadStream(reader, position, results) {
+    try {
+        var exifStream = new DataStream(reader, position);
+        var exifTagList = getTiffInfo(exifStream, 0);
+        tiffPopulateResults(reader, position, exifTagList, results);
+    } catch(e) {
+        console.log("Error while reading Exif: " + e);
+    }
+}
+
+function tiffPopulateResults(reader, position, exifTagList, results) {
+    var i, thumbOffset = 0, thumbLength = 0;
+    for (i = 0; i < exifTagList.length; i++) {
+        var node = results.add("[0x" + exifTagList[i].tagID.toString(16).toUpperCase() + "] " + getTiffTagName(exifTagList[i].tagID, exifTagList[i].ifdTag, exifTagList[i].makerNoteType), exifTagList[i].tagContents);
+
+        if (exifTagList[i].tagID == 513) {
+            thumbOffset = parseInt(exifTagList[i].tagContents);
+        }
+        else if (exifTagList[i].tagID == 514) {
+            thumbLength = parseInt(exifTagList[i].tagContents);
+        }
+        if (thumbOffset > 0 && thumbLength > 0) {
+            thumbOffset += position;
+            var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, thumbOffset, thumbLength);
+            var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
+            results.add("Thumbnail", thumbHtml);
+            thumbOffset = 0;
+            thumbLength = 0;
+        }
+        if (exifTagList[i].subTags.length > 0) {
+            tiffPopulateResults(reader, position, exifTagList[i].subTags, node);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------
@@ -772,6 +822,7 @@ var _tiffMainIfdTags = function() {
 
     this.keys[33723] = "IPTC/NAA";
     this.keys[34377] = "Photoshop settings";
+    this.keys[34665] = "Exif IFD";
     this.keys[34675] = "ICC profile";
     this.keys[34732] = "Image layer";
     this.keys[34850] = "Exposure program";
@@ -837,6 +888,7 @@ var _tiffMainIfdTags = function() {
     this.keys[40962] = "PixelXDimension";
     this.keys[40963] = "PixelYDimension";
     this.keys[40964] = "Related sound file";
+    this.keys[40965] = "Interoperability IFD";
 
     this.keys[41483] = "Flash energy";
     this.keys[41484] = "Spatial frequency response";

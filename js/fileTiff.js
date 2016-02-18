@@ -20,27 +20,7 @@ function parseFormat(reader)
 	var results = new ResultNode("TIFF structure");
 
     try {
-        var exifStream = new DataStream(reader);
-        var exifTagList = getTiffInfo(exifStream, 0);
-        var thumbOffset = 0, thumbLength = 0;
-        for (var i = 0; i < exifTagList.length; i++) {
-            results.add("[0x" + exifTagList[i].tagID.toString(16).toUpperCase() + "] " + getTiffTagName(exifTagList[i].tagID, exifTagList[i].ifdTag, exifTagList[i].makerNoteType), exifTagList[i].tagContents);
-
-            if (exifTagList[i].tagID == 513) {
-                thumbOffset = parseInt(exifTagList[i].tagContents);
-            }
-            else if (exifTagList[i].tagID == 514) {
-                thumbLength = parseInt(exifTagList[i].tagContents);
-            }
-            if (thumbOffset > 0 && thumbLength > 0) {
-                var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, thumbOffset, thumbLength);
-                var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
-                results.add("Thumbnail", thumbHtml);
-                reader.onGetPreviewImage(thumbString);
-                thumbOffset = 0;
-                thumbLength = 0;
-            }
-        }
+        tiffReadStream(reader, 0, results);
     } catch(e) {
         console.log("Error while reading TIFF: " + e);
     }

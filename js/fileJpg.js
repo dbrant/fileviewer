@@ -108,31 +108,7 @@ function parseJpgStructure(reader, offset)
                     if ((reader.getAsciiStringAt(position, 4) == "Exif")
                         && (((reader.byteAt(position + 6) == 0x4D) && (reader.byteAt(position + 7) == 0x4D)) || ((reader.byteAt(position + 6) == 0x49) && (reader.byteAt(position + 7) == 0x49))))
                     {
-                        try {
-                            var exifStream = new DataStream(reader, position + 6);
-                            var exifTagList = getTiffInfo(exifStream, 0);
-                            var thumbOffset = 0, thumbLength = 0;
-                            for (i = 0; i < exifTagList.length; i++) {
-                                node.add("[0x" + exifTagList[i].tagID.toString(16).toUpperCase() + "] " + getTiffTagName(exifTagList[i].tagID, exifTagList[i].ifdTag, exifTagList[i].makerNoteType), exifTagList[i].tagContents);
-
-                                if (exifTagList[i].tagID == 513) {
-                                    thumbOffset = parseInt(exifTagList[i].tagContents);
-                                }
-                                else if (exifTagList[i].tagID == 514) {
-                                    thumbLength = parseInt(exifTagList[i].tagContents);
-                                }
-                                if (thumbOffset > 0 && thumbLength > 0) {
-                                    thumbOffset += position + 6;
-                                    var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, thumbOffset, thumbLength);
-                                    var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
-                                    node.add("Thumbnail", thumbHtml);
-                                    thumbOffset = 0;
-                                    thumbLength = 0;
-                                }
-                            }
-                        } catch(e) {
-                            console.log("Error while reading Exif: " + e);
-                        }
+                        tiffReadStream(reader, position + 6, node);
                     }
                     else if (((reader.byteAt(position) == 0x4D) && (reader.byteAt(position + 1) == 0x50) && (reader.byteAt(position + 2) == 0x46) && (reader.byteAt(position + 3) == 0))
                         && (((reader.byteAt(position + 4) == 0x4D) && (reader.byteAt(position + 5) == 0x4D)) || ((reader.byteAt(position + 4) == 0x49) && (reader.byteAt(position + 5) == 0x49))))
