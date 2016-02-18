@@ -20,7 +20,7 @@ function parseFormat(reader)
 	var results = new ResultNode("TIFF structure");
 
     try {
-        tiffReadStream(reader, 0, results);
+        tiffReadStream(reader, 0, results, true);
     } catch(e) {
         console.log("Error while reading TIFF: " + e);
     }

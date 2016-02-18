@@ -52,7 +52,11 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
             } else if (movAsciiableChunks.indexOf(parentChunk) >= 0) {
                 var numAsciiBytes = chunkLength - 8;
                 if (numAsciiBytes > 0 && numAsciiBytes < 1024) {
-                    node.add("Value", stream.reader.getAsciiStringAt(stream.position + 8, numAsciiBytes));
+                    var asciiStr = stream.reader.getAsciiStringAt(stream.position + 8, numAsciiBytes);
+                    if (movWikiableChunks.indexOf(parentChunk) >= 0) {
+                        asciiStr = wikiLinkifyString(asciiStr);
+                    }
+                    node.add("Value", asciiStr);
                 }
             }
         }
@@ -81,4 +85,6 @@ var movChunkTypes = [ "ftyp", "moov", "mdat", "mvhd", "trak", "udta", "meta",
 
 var movSubChunkableChunks = [ "moov", "trak", "mdia", "minf", "stbl", "udta", "ilst", "covr", "\xA9nam", "\xA9ART", "\xA9alb", "\xA9wrt", "\xA9too", "\xA9day" ];
 
-var movAsciiableChunks = [ "\xA9nam", "\xA9ART", "\xA9alb", "\xA9wrt", "\xA9too", "\xA9day"];
+var movAsciiableChunks = [ "\xA9nam", "\xA9ART", "\xA9alb", "\xA9wrt", "\xA9too", "\xA9day" ];
+
+var movWikiableChunks = [ "\xA9ART", "\xA9alb" ];

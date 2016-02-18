@@ -34,7 +34,7 @@ function parseJpgStructure(reader, offset)
         var segmentType;
         var segmentLength = 0;
         var scanStarted = false;
-        var i;
+        var i, node, subNode;
 
         while (!stream.eof()) {
 
@@ -90,7 +90,7 @@ function parseJpgStructure(reader, offset)
                 //read the length of the segment
                 segmentLength = stream.readUShortBe();
 
-                var node = results.add(getJpgSegmentName(segmentType), segmentLength.toString() + " bytes");
+                node = results.add(getJpgSegmentName(segmentType), segmentLength.toString() + " bytes");
 
                 segmentLength -= 2;
                 if (segmentLength == 0) continue;
@@ -108,7 +108,7 @@ function parseJpgStructure(reader, offset)
                     if ((reader.getAsciiStringAt(position, 4) == "Exif")
                         && (((reader.byteAt(position + 6) == 0x4D) && (reader.byteAt(position + 7) == 0x4D)) || ((reader.byteAt(position + 6) == 0x49) && (reader.byteAt(position + 7) == 0x49))))
                     {
-                        tiffReadStream(reader, position + 6, node);
+                        tiffReadStream(reader, position + 6, node, false);
                     }
                     else if (((reader.byteAt(position) == 0x4D) && (reader.byteAt(position + 1) == 0x50) && (reader.byteAt(position + 2) == 0x46) && (reader.byteAt(position + 3) == 0))
                         && (((reader.byteAt(position + 4) == 0x4D) && (reader.byteAt(position + 5) == 0x4D)) || ((reader.byteAt(position + 4) == 0x49) && (reader.byteAt(position + 5) == 0x49))))
@@ -129,6 +129,7 @@ function parseJpgStructure(reader, offset)
                         var duckyPtr = 5;
                         try
                         {
+                            subNode = node.add("Ducky");
                             while (duckyPtr < segmentLength)
                             {
                                 var duckTag = reader.ushortBeAt(position + duckyPtr); duckyPtr += 2;
@@ -137,15 +138,15 @@ function parseJpgStructure(reader, offset)
                                 {
                                     if (duckTag == 1)
                                     {
-                                        node.add("Quality (Ducky)", reader.uintBeAt(position + duckyPtr));
+                                        subNode.add("Quality", reader.uintBeAt(position + duckyPtr));
                                     }
                                     else if (duckTag == 2)
                                     {
-                                        node.add("Comment (Ducky)", reader.getAsciiStringAt(position + duckyPtr, duckLen));
+                                        subNode.add("Comment", reader.getAsciiStringAt(position + duckyPtr, duckLen));
                                     }
                                     else if (duckTag == 3)
                                     {
-                                        node.add("Copyright (Ducky)", reader.getAsciiStringAt(position + duckyPtr, duckLen));
+                                        subNode.add("Copyright", reader.getAsciiStringAt(position + duckyPtr, duckLen));
                                     }
                                 }
                                 duckyPtr += duckLen;
@@ -156,12 +157,13 @@ function parseJpgStructure(reader, offset)
                     }
                     else if ((segmentType == 0xE0) && (reader.getAsciiStringAt(position, 4) == "JFIF"))
                     {
-                        node.add("JFIF version", reader.byteAt(position + 5).toString() + "." + reader.byteAt(position + 6).toString());
+                        subNode = node.add("JFIF");
+                        subNode.add("Version", reader.byteAt(position + 5).toString() + "." + reader.byteAt(position + 6).toString());
                         var dUnits = reader.byteAt(position + 7) == 0 ? "" : reader.byteAt(position + 7) == 1 ? "dpi" : "dpcm";
                         var xDens = reader.ushortBeAt(position + 8);
                         var yDens = reader.ushortBeAt(position + 10);
-                        node.add("JFIF horizontal density", xDens.toString() + " " + dUnits);
-                        node.add("JFIF vertical density", yDens.toString() + " " + dUnits);
+                        subNode.add("Horizontal density", xDens.toString() + " " + dUnits);
+                        subNode.add("Vertical density", yDens.toString() + " " + dUnits);
                     }
                 }
             }

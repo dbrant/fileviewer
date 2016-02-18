@@ -401,7 +401,7 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
             exifTag.ifdTag = ifdTag;
             exifTag.makerNoteType = makerNoteType;
             if (tiffWikiLinkableTags.indexOf(exifTag.tagID) >= 0) {
-                exifTag.tagContents = "<a href='https://en.wikipedia.org/wiki/" + valStr + "' target='_blank'>" + valStr + "</a>";
+                exifTag.tagContents = wikiLinkifyString(valStr);
             } else {
                 exifTag.tagContents = valStr;
             }
@@ -459,17 +459,17 @@ function getTiffTagName(tag, ifdType, makernoteType) {
     return name;
 }
 
-function tiffReadStream(reader, position, results) {
+function tiffReadStream(reader, position, results, sendThumbnailToPreview) {
     try {
         var exifStream = new DataStream(reader, position);
         var exifTagList = getTiffInfo(exifStream, 0);
-        tiffPopulateResults(reader, position, exifTagList, results);
+        tiffPopulateResults(reader, position, exifTagList, results, sendThumbnailToPreview);
     } catch(e) {
         console.log("Error while reading Exif: " + e);
     }
 }
 
-function tiffPopulateResults(reader, position, exifTagList, results) {
+function tiffPopulateResults(reader, position, exifTagList, results, sendThumbnailToPreview) {
     var i, thumbOffset = 0, thumbLength = 0;
     for (i = 0; i < exifTagList.length; i++) {
         var node = results.add("[0x" + exifTagList[i].tagID.toString(16).toUpperCase() + "] " + getTiffTagName(exifTagList[i].tagID, exifTagList[i].ifdTag, exifTagList[i].makerNoteType), exifTagList[i].tagContents);
@@ -485,6 +485,9 @@ function tiffPopulateResults(reader, position, exifTagList, results) {
             var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, thumbOffset, thumbLength);
             var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
             results.add("Thumbnail", thumbHtml);
+            if (sendThumbnailToPreview) {
+                reader.onGetPreviewImage(thumbString);
+            }
             thumbOffset = 0;
             thumbLength = 0;
         }

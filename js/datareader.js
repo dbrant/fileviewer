@@ -267,6 +267,9 @@ function uintToShortsLe(value) {
     return shorts;
 }
 
+function wikiLinkifyString(str) {
+    return "<a href='https://en.wikipedia.org/wiki/" + str + "' target='_blank'>" + str + "</a>";
+}
 
 
 function base64FromArrayBuffer(arrayBuffer, bOffset, bLength) {
