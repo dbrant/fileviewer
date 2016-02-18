@@ -30,9 +30,13 @@ function parseFormat(reader)
 function movProcessChunks(stream, maxLen, parentChunk, results) {
     var chunkType;
     var chunkLength;
+    var maxPosition = stream.position + maxLen;
 
-    while (stream.position < maxLen) {
-        chunkLength = stream.readUIntBe();
+    while (stream.position < maxPosition) {
+
+        console.log(">> reading new box, at parent: " + parentChunk);
+
+        chunkLength = stream.readUIntBe() - 8;
         chunkType = stream.readAsciiString(4);
 
         var node = results.add(chunkType, chunkLength.toString() + " bytes");
@@ -47,23 +51,22 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
                 stream.reader.onGetPreviewImage(thumbString);
             } else if (movAsciiableChunks.indexOf(parentChunk) >= 0) {
                 var numAsciiBytes = chunkLength - 8;
-                console.log(">>> " + numAsciiBytes);
-                if (numAsciiBytes > 0) {
+                if (numAsciiBytes > 0 && numAsciiBytes < 1024) {
                     node.add("Value", stream.reader.getAsciiStringAt(stream.position + 8, numAsciiBytes));
                 }
             }
         }
 
         if (movSubChunkableChunks.indexOf(chunkType) >= 0) {
-
-            movProcessChunks(stream, chunkLength, chunkType,  node);
-            
+            movProcessChunks(stream, chunkLength, chunkType, node);
         } else if (chunkType == "meta") {
+
+            // TODO: verify some things to make sure the meta format is correct?
+
             stream.skip(4);
-            chunkLength -= 4;
+            chunkLength -= 8;
             movProcessChunks(stream, chunkLength, chunkType, node);
         } else {
-            chunkLength -= 8;
             if (chunkLength > 0) {
                 stream.skip(chunkLength);
             }
@@ -76,6 +79,6 @@ var movChunkTypes = [ "ftyp", "moov", "mdat", "mvhd", "trak", "udta", "meta",
     "free", "skip", "wide", "stss", "stsz", "chpl", "pdin", "ilst", "auth", "titl", "dscp",
     "cprt", "text", "tx3g", "uuid" ];
 
-var movSubChunkableChunks = [ "moov", "trak", "mdia", "minf", "stbl", "udta", "ilst", "covr", "\xA9nam", "\xA9ART", "\xA9alb" ];
+var movSubChunkableChunks = [ "moov", "trak", "mdia", "minf", "stbl", "udta", "ilst", "covr", "\xA9nam", "\xA9ART", "\xA9alb", "\xA9wrt", "\xA9too", "\xA9day" ];
 
-var movAsciiableChunks = [ "\xA9nam", "\xA9ART", "\xA9alb" ];
+var movAsciiableChunks = [ "\xA9nam", "\xA9ART", "\xA9alb", "\xA9wrt", "\xA9too", "\xA9day"];
