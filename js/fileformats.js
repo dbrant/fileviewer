@@ -116,7 +116,7 @@ var FileFormatList = [
     new FileFormat("mov",
         "MP4/M4V/M4A/3GP/MOV audio/video.",
         "",
-        [ "fileMov.js" ],
+        [ "tiff.js", "fileJpg.js", "filePng.js", "fileMov.js" ],
         function(reader) {
             if ((reader.byteAt(4) == 0x66) && (reader.byteAt(5) >= 0x74) && (reader.byteAt(6) <= 0x79) && (reader.byteAt(7) == 0x70)) {
                 return true;
@@ -275,6 +275,18 @@ var FileFormatList = [
         function(reader) {
             if ((reader.byteAt(0x80) == 0x44) && (reader.byteAt(0x81) == 0x49) && (reader.byteAt(0x82) == 0x43)
                 && (reader.byteAt(0x83) == 0x4D) && (reader.byteAt(0x84) == 0x2) && (reader.byteAt(0x85) == 0x0)) {
+                return true;
+            }
+            return false;
+        }),
+
+    new FileFormat("mp3",
+        "MPEG-1 or MPEG-2 Audio Layer III.",
+        "",
+        [ "tiff.js", "fileJpg.js", "filePng.js", "fileMp3.js" ],
+        function(reader) {
+            if ((reader.byteAt(0x0) == 0x49) && (reader.byteAt(0x1) == 0x44) && (reader.byteAt(0x2) == 0x33)
+                && (reader.byteAt(0x3) > 1) && (reader.byteAt(0x3) < 8)) {
                 return true;
             }
             return false;

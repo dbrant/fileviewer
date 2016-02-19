@@ -232,6 +232,32 @@ var DataStream = function(dReader, initialOffset) {
             result += String.fromCharCode(this.readByte());
         }
         return result;
+    };
+
+    this.readUtf16BeString = function(length) {
+        var result = "";
+        if (length <= 2) {
+            return result;
+        }
+        this.skip(2);
+        var chars = (length - 2) / 2;
+        for (var i = 0; i < chars; i++) {
+            result += String.fromCharCode(this.readUShortBe());
+        }
+        return result;
+    };
+
+    this.readUtf16LeString = function(length) {
+        var result = "";
+        if (length <= 2) {
+            return result;
+        }
+        this.skip(2);
+        var chars = (length - 2) / 2;
+        for (var i = 0; i < chars; i++) {
+            result += String.fromCharCode(this.readUShortLe());
+        }
+        return result;
     }
 };
 

@@ -47,8 +47,18 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
 
         if (chunkType == "data") {
             if (parentChunk == "covr") {
-                var thumbString = "data:image/png;base64," + base64FromArrayBuffer(stream.reader.dataView.buffer, stream.position + 8, chunkLength - 16);
+
+                var covrPosition = stream.position + 8;
+
+                if (stream.reader.byteAt(covrPosition) == 0x89 && stream.reader.byteAt(covrPosition + 1) == 0x50) {
+                    node.addResult(parsePngStructure(stream.reader, covrPosition));
+                } else if (stream.reader.byteAt(covrPosition) == 0xFF && stream.reader.byteAt(covrPosition + 1) == 0xD8) {
+                    node.addResult(parseJpgStructure(stream.reader, covrPosition));
+                }
+
+                var thumbString = "data:image/png;base64," + base64FromArrayBuffer(stream.reader.dataView.buffer, covrPosition, chunkLength - 16);
                 stream.reader.onGetPreviewImage(thumbString);
+
             } else if (movAsciiableChunks.indexOf(parentChunk) >= 0) {
                 var numAsciiBytes = chunkLength - 8;
                 if (numAsciiBytes > 0 && numAsciiBytes < 1024) {

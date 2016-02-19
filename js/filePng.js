@@ -17,15 +17,22 @@
 
 function parseFormat(reader)
 {
-	var results = new ResultNode("PNG structure");
-	try {
-		var stream = new DataStream(reader);
-		var chunkType;
+    return parseJpgStructure(reader);
+}
+
+function parsePngStructure(reader, offset) {
+    var results = new ResultNode("PNG structure");
+    try {
+        var stream = new DataStream(reader);
+        if (offset !== undefined) {
+            stream.skip(offset);
+        }
+        var chunkType;
         var chunkLength;
 
         stream.skip(8);
 
-		while (!stream.eof()) {
+        while (!stream.eof()) {
             chunkLength = stream.readUIntBe();
             chunkType = stream.readAsciiString(4);
 
@@ -46,10 +53,14 @@ function parseFormat(reader)
 
             // skip crc
             stream.skip(4);
-		}
-	} catch(e) {
-		console.log("Error while reading PNG: " + e);
-	}
-	return results;
-}
 
+            // is this the ending chunk?
+            if (chunkType == "IEND") {
+                break;
+            }
+        }
+    } catch(e) {
+        console.log("Error while reading PNG: " + e);
+    }
+    return results;
+}
