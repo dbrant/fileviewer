@@ -17,7 +17,7 @@
 
 function parseFormat(reader)
 {
-    return parseJpgStructure(reader);
+    return parsePngStructure(reader);
 }
 
 function parsePngStructure(reader, offset) {
