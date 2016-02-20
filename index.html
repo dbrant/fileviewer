@@ -10,6 +10,7 @@
     <script>
 
         $(document).ready(function() {
+            setStatus("Loading...");
             downloadScripts([ "fileformats.js", "datareader.js" ], onAllScriptsLoaded);
         });
 
@@ -29,14 +30,13 @@
 
         function onAllScriptsLoaded() {
             var holder = $("#holder");
-            var fileReaderStatus = $("#fileReaderStatus");
 
             if (typeof window.FileReader === 'undefined') {
-                fileReaderStatus.html('Error: File API and/or FileReader API not supported.');
+                setStatus('Error: File API and/or FileReader API not supported.');
                 $("#topContainer").hide();
                 return;
             } else {
-                fileReaderStatus.hide();
+                setStatus("");
             }
 
             $("#fileBrowseInput").on("change", function(event) {
@@ -81,8 +81,9 @@
         }
 
         function processFile(file) {
+            setStatus("");
             if(file == null){
-                console.log("Whatever was dropped is not a file.");
+                setStatus("Whatever was dropped is not a file.");
                 return;
             }
             var reader = new FileReader();
@@ -143,6 +144,16 @@
                 }
             };
             reader.readAsArrayBuffer(file);
+        }
+
+        function setStatus(status) {
+            var fileReaderStatus = $("#fileReaderStatus");
+            if (status.length > 0) {
+                fileReaderStatus.show();
+                fileReaderStatus.html(status);
+            } else {
+                fileReaderStatus.hide();
+            }
         }
 
         function drawImageOnCanvas(imageSrc) {

@@ -33,9 +33,6 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
     var maxPosition = stream.position + maxLen;
 
     while (stream.position < maxPosition) {
-
-        console.log(">> reading new box, at parent: " + parentChunk);
-
         chunkLength = stream.readUIntBe() - 8;
         chunkType = stream.readAsciiString(4);
 
