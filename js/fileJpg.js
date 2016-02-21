@@ -166,6 +166,10 @@ function parseJpgStructure(reader, offset)
                         subNode.add("Vertical density", yDens.toString() + " " + dUnits);
                     }
                 }
+                else if (segmentType == 0xFE) {
+                    var commentStr = reader.getAsciiStringAt(position, segmentLength);
+                    node.add("Comment", commentStr);
+                }
             }
 
         }
