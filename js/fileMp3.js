@@ -79,11 +79,15 @@ function id3ReadString(stream, length) {
         retStr = stream.readUtf16BeString(length - 1); // UTF-16BE
     } else if (strType == 3) {
         retStr = stream.readAsciiString(length - 1); // UTF-8
+    } else {
+        // Just read the string without a type. Seems to be the case for POPM
+        stream.seek(-1, 1);
+        retStr = stream.readAsciiString(length);
     }
     return retStr;
 }
 
-var id3AsciiWorthyTags = [ "TIT1", "TIT2", "TPE1", "TPE2", "TALB", "TCON", "TPOS", "WXXX", "TYER", "COMM", "TENC", "POPM", "TCMP" ];
+var id3AsciiWorthyTags = [ "TIT1", "TIT2", "TPE1", "TPE2", "TALB", "TCON", "TPOS", "WXXX", "TYER", "COMM", "TENC", /*"POPM",*/ "TCMP" ];
 var id3WikiableTags = [ "TALB", "TPE1", "TPE2" ];
 var id3HeaderSize = 10;
 var id3FrameHeaderSize = 10;
