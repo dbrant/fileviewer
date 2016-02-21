@@ -84,10 +84,11 @@ function id3ReadString(stream, length) {
         stream.seek(-1, 1);
         retStr = stream.readAsciiString(length);
     }
+    retStr = retStr.replace("\0", "");
     return retStr;
 }
 
-var id3AsciiWorthyTags = [ "TIT1", "TIT2", "TPE1", "TPE2", "TALB", "TCON", "TPOS", "WXXX", "TYER", "COMM", "TENC", /*"POPM",*/ "TCMP" ];
+var id3AsciiWorthyTags = [ "TIT1", "TIT2", "TPE1", "TPE2", "TALB", "TCON", "TPOS", "WXXX", "TYER", "COMM", "TENC", /*"POPM",*/ "TXXX", "TCMP" ];
 var id3WikiableTags = [ "TALB", "TPE1", "TPE2" ];
 var id3HeaderSize = 10;
 var id3FrameHeaderSize = 10;
