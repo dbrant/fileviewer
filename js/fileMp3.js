@@ -88,7 +88,7 @@ function id3ReadString(stream, length) {
     return retStr;
 }
 
-var id3AsciiWorthyTags = [ "TIT1", "TIT2", "TPE1", "TPE2", "TALB", "TCON", "TPOS", "WXXX", "TYER", "COMM", "TENC", /*"POPM",*/ "TXXX", "TCMP" ];
+var id3AsciiWorthyTags = [ "TIT1", "TIT2", "TPE1", "TPE2", "TALB", "TCON", "TPOS", "WXXX", "TYER", "COMM", "TENC", /*"POPM",*/ "TXXX", "TCMP", "TSSE", "TLEN", "TLAN", "TPUB", "TDAT" ];
 var id3WikiableTags = [ "TALB", "TPE1", "TPE2" ];
 var id3HeaderSize = 10;
 var id3FrameHeaderSize = 10;
