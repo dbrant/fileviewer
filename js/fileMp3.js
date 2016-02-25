@@ -35,6 +35,8 @@ function parseFormat(reader)
                 }
 
                 var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, frames[i].apicAbsoluteLocation, frames[i].apicSize);
+                var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
+                node.add("Image", thumbHtml);
                 stream.reader.onGetPreviewImage(thumbString);
             }
         }
@@ -113,7 +115,7 @@ function id3v2ReadContainer(stream) {
         stream.skip(extHeaderSize);
     }
 
-//cycle through frames...
+    //cycle through frames...
     var currentLength = 0;
     while (currentLength < id3Size) {
         var frame = new id3v2Frame(stream, id3Version);

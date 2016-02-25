@@ -54,6 +54,8 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
                 }
 
                 var thumbString = "data:image/png;base64," + base64FromArrayBuffer(stream.reader.dataView.buffer, covrPosition, chunkLength - 16);
+                var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
+                node.add("Image", thumbHtml);
                 stream.reader.onGetPreviewImage(thumbString);
 
             } else if (movAsciiableChunks.indexOf(parentChunk) >= 0) {
