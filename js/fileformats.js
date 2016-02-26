@@ -290,6 +290,17 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("zip",
+        "ZIP compressed file container.",
+        "",
+        [ "fileZip.js" ],
+        function(reader) {
+            if ((reader.byteAt(0x0) == 0x50) && (reader.byteAt(0x1) == 0x4B) && (reader.byteAt(0x2) == 0x3) && (reader.byteAt(0x3) == 0x4)) {
+                return true;
+            }
+            return false;
         })
 
 ];
