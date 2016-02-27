@@ -29,8 +29,12 @@ function parseFormat(reader)
 }
 
 
-function zipReadContents(stream) {
+function zipReadContents(stream, fileList) {
     var headerSig;
+    var versionNeeded, flags, compressionMethod;
+    var lastModTime, lastModDate, crc32;
+    var compressedSize, uncompressedSize, fileNameLength;
+    var extraFieldLength;
 
     while (true) {
         //read local file header...
@@ -38,17 +42,17 @@ function zipReadContents(stream) {
 
         if (headerSig == 0x04034b50) {
             //compressed file data!
-            var versionNeeded = stream.readShortLe();
-            var flags = stream.readShortLe();
-            var compressionMethod = stream.readShortLe();
-            var lastModTime = stream.readShortLe();
-            var lastModDate = stream.readShortLe();
+            versionNeeded = stream.readUShortLe();
+            flags = stream.readUShortLe();
+            compressionMethod = stream.readUShortLe();
+            lastModTime = stream.readUShortLe();
+            lastModDate = stream.readUShortLe();
 
-            var crc32 = stream.readUIntLe();
-            var compressedSize = stream.readUIntLe();
-            var uncompressedSize = stream.readUIntLe();
-            var fileNameLength = stream.readShortLe();
-            var extraFieldLength = stream.readShortLe();
+            crc32 = stream.readUIntLe();
+            compressedSize = stream.readUIntLe();
+            uncompressedSize = stream.readUIntLe();
+            fileNameLength = stream.readUShortLe();
+            extraFieldLength = stream.readUShortLe();
 
             //sanity
             if (fileNameLength > 10000) {
@@ -58,98 +62,59 @@ function zipReadContents(stream) {
             //read file name...
             var fileName = stream.readAsciiString(fileNameLength);
 
-            if (fileList != null) {
-                fileList.add(new String(tempBytes, 0, fileNameLength));
-                if (maxFileList > 0)
-                    if (fileList.size() >= maxFileList) break;
+            if (fileList !== null) {
+                fileList.push(fileName);
             }
 
-            //read extra field...
-            disk.readBytes(tempBytes, 0, extraFieldLength);
-            fileSize += extraFieldLength;
-
-            if (compressedSize < 0) {
-                break;
-            }
-            fileSize += compressedSize;
-            disk.skipBytes(compressedSize);
+            stream.seek(extraFieldLength, 1);
+            stream.seek(compressedSize, 1);
 
             //read data descriptor?
             if ((flags & 0x8) != 0) {
-                int s = SearchForSig(disk, new byte[]{0x50, 0x4B, 0x7, 0x8}, 10000);
-                if (s >= 0) {
-                    fileSize += s;
-                } else {
-                    haveHeader = false;
-                    break;
-                }
+                //int s = SearchForSig(disk, new byte[]{0x50, 0x4B, 0x7, 0x8}, 10000);
+                //if (s >= 0) {
+                //    fileSize += s;
+                //} else {
+                //    haveHeader = false;
+                //    break;
+                //}
             }
-        } else if (headerSig == 0x08074b50L) {
-            fileSize += 4;
-            disk.readBytes(tempBytes, 0, 12);
-            fileSize += 12;
-            bytePtr = 0;
+        } else if (headerSig == 0x08074b50) {
 
-            long dataCrc32 = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            long dataCompSize = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            long dataUncompSize = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-        } else if (headerSig == 0x08064b50L) {
-            fileSize += 4;
+            var dataCrc32 = stream.readUIntLe();
+            var dataCompSize = stream.readUIntLe();
+            var dataUncompSize = stream.readUIntLe();
+
+        } else if (headerSig == 0x08064b50) {
+
             //archive extra data record!
-            disk.readBytes(tempBytes, 0, 4);
-            fileSize += 4;
-            bytePtr = 0;
-            long extraFieldLength = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
+            extraFieldLength = stream.readUIntLe();
+            stream.seek(extraFieldLength, 1);
 
-            if (extraFieldLength < 0) {
-                break;
-            }
-            fileSize += extraFieldLength;
-            disk.skipBytes(extraFieldLength);
-        } else if (headerSig == 0x02014b50L) {
-            fileSize += 4;
+        } else if (headerSig == 0x02014b50) {
+
             //directory file header!
             disk.readBytes(tempBytes, 0, 42);
             fileSize += 42;
             bytePtr = 0;
 
-            int versionMadeBy = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int versionNeeded = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int flags = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int compressionMethod = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int lastModTime = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int lastModDate = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
+            var versionMadeBy = stream.readUShortLe();
+            versionNeeded = stream.readUShortLe();
+            flags = stream.readUShortLe();
+            compressionMethod = stream.readUShortLe();
+            lastModTime = stream.readUShortLe();
+            lastModDate = stream.readUShortLe();
 
-            long crc32 = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            long compressedSize = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            long uncompressedSize = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            int fileNameLength = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int extraFieldLength = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int fileCommentLength = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int diskNumberStart = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int internalFileAttr = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            long externalFileAttr = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            long relHeaderOffset = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
+            crc32 = stream.readUIntLe();
+            compressedSize = stream.readUIntLe();
+            uncompressedSize = stream.readUIntLe();
+            fileNameLength = stream.readUShortLe();
+            extraFieldLength = stream.readUShortLe();
+            var fileCommentLength = stream.readUShortLe();
+            var diskNumberStart = stream.readUShortLe();
+            var internalFileAttr = stream.readUShortLe();
+            var externalFileAttr = stream.readUIntLe();
+            var relHeaderOffset = stream.readUIntLe();
 
             //read file name...
             disk.readBytes(tempBytes, 0, fileNameLength);
