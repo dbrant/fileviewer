@@ -94,10 +94,6 @@ function zipReadContents(stream, fileList) {
         } else if (headerSig == 0x02014b50) {
 
             //directory file header!
-            disk.readBytes(tempBytes, 0, 42);
-            fileSize += 42;
-            bytePtr = 0;
-
             var versionMadeBy = stream.readUShortLe();
             versionNeeded = stream.readUShortLe();
             flags = stream.readUShortLe();
@@ -117,44 +113,32 @@ function zipReadContents(stream, fileList) {
             var relHeaderOffset = stream.readUIntLe();
 
             //read file name...
-            disk.readBytes(tempBytes, 0, fileNameLength);
-            fileSize += fileNameLength;
+            stream.seek(fileNameLength, 1);
 
             //read extra field...
-            disk.readBytes(tempBytes, 0, extraFieldLength);
-            fileSize += extraFieldLength;
+            stream.seek(extraFieldLength, 1);
 
             //read file comment...
-            disk.readBytes(tempBytes, 0, fileCommentLength);
-            fileSize += fileCommentLength;
-            haveHeader = true;
-        } else if (headerSig == 0x05054b50L) {
-            fileSize += 4;
+            if (fileCommentLength < 4096) {
+                var fileComment = stream.readAsciiString(fileCommentLength);
+            } else {
+                stream.seek(fileCommentLength, 1);
+            }
+
+        } else if (headerSig == 0x05054b50) {
+
             //digital signature!
-            disk.readBytes(tempBytes, 0, 2);
-            fileSize += 2;
-            bytePtr = 0;
-            int dataLength = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
+            var dataLength = stream.readUShortLe();
+            stream.seek(dataLength, 1);
 
-            if (dataLength < 0) {
-                break;
-            }
-            disk.skipBytes(dataLength);
-            fileSize += dataLength;
-        } else if (headerSig == 0x06064b50L) {
-            fileSize += 4;
+        } else if (headerSig == 0x06064b50) {
+
             //zip64 end of central directory!
-            disk.readBytes(tempBytes, 0, 8);
-            fileSize += 8;
-            bytePtr = 0;
-            long sizeOfRecord = getLongLe(tempBytes, bytePtr);
-            bytePtr += 8;
-
+            var sizeOfRecord = stream.readLongLe();
             if (sizeOfRecord > 0) {
-                disk.skipBytes(sizeOfRecord);
-                fileSize += sizeOfRecord;
+                stream.seek(sizeOfRecord, 1);
             }
+
         } else if (headerSig == 0x07064b50L) {
             fileSize += 4;
             //zip64 end of central dir locator!

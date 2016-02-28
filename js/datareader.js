@@ -194,6 +194,22 @@ var DataStream = function(dReader, initialOffset) {
         return r;
     };
 
+    this.readLongLe = function() {
+        var r = this.reader.intLeAt(this.position);
+        this.position += 4;
+        r = (this.reader.intLeAt(this.position) << 32) + r;
+        this.position += 4;
+        return r;
+    };
+
+    this.readLongBe = function() {
+        var r = this.reader.intBeAt(this.position);
+        this.position += 4;
+        r = (r << 32) + this.reader.intBeAt(this.position);
+        this.position += 4;
+        return r;
+    };
+
     this.readFloatLe = function() {
         var r = this.reader.floatLeAt(this.position);
         this.position += 4;
