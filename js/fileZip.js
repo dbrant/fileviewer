@@ -21,6 +21,12 @@ function parseFormat(reader)
 	try {
 		var stream = new DataStream(reader);
 
+        var fileList = [];
+        zipReadContents(stream, results, fileList);
+
+        for (var i = 0; i < fileList.length; i++) {
+            //results.add(fileList[i]);
+        }
 
     } catch(e) {
 		console.log("Error while reading ZIP: " + e);
@@ -28,15 +34,15 @@ function parseFormat(reader)
 	return results;
 }
 
-
-function zipReadContents(stream, fileList) {
+function zipReadContents(stream, results, fileList) {
     var headerSig;
     var versionNeeded, flags, compressionMethod;
     var lastModTime, lastModDate, crc32;
     var compressedSize, uncompressedSize, fileNameLength;
     var extraFieldLength;
+    var node;
 
-    while (true) {
+    while (!stream.eof()) {
         //read local file header...
         headerSig = stream.readUIntLe();
 
@@ -61,6 +67,11 @@ function zipReadContents(stream, fileList) {
 
             //read file name...
             var fileName = stream.readAsciiString(fileNameLength);
+
+            node = results.add("Local file header");
+            node.add("Name", fileName);
+            node.add("Size (compressed)", compressedSize);
+            node.add("Size (uncompressed)", uncompressedSize);
 
             if (fileList !== null) {
                 fileList.push(fileName);
@@ -139,51 +150,32 @@ function zipReadContents(stream, fileList) {
                 stream.seek(sizeOfRecord, 1);
             }
 
-        } else if (headerSig == 0x07064b50L) {
-            fileSize += 4;
+        } else if (headerSig == 0x07064b50) {
+
             //zip64 end of central dir locator!
-            disk.readBytes(tempBytes, 0, 16);
-            fileSize += 16;
-            bytePtr = 0;
+            var numberofDisk = stream.readUIntLe();
+            var offsetToCentralDirRec = stream.readLongLe();
+            var numTotalDisks = stream.readUIntLe();
 
-            long numberofDisk = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            long offsetToCentralDirRec = getLongLe(tempBytes, bytePtr);
-            bytePtr += 8;
-            long numTotalDisks = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-        } else if (headerSig == 0x06054b50L) {
-            fileSize += 4;
+        } else if (headerSig == 0x06054b50) {
+
             //directory file header!
-            disk.readBytes(tempBytes, 0, 18);
-            fileSize += 18;
-            bytePtr = 0;
+            var diskNumber = stream.readUShortLe();
+            var numDiskWithCentralDir = stream.readUShortLe();
+            var localCentralDirEntries = stream.readUShortLe();
+            var totalCentralDirEntries = stream.readUShortLe();
+            var sizeOfCentralDir = stream.readUIntLe();
+            var offsetToCentralDir = stream.readUIntLe();
+            var zipCommentLength = stream.readUShortLe();
 
-            int diskNumber = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int numDiskWithCentralDir = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int localCentralDirEntries = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            int totalCentralDirEntries = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-            long sizeOfCentralDir = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            long offsetToCentralDir = getIntLe(tempBytes, bytePtr);
-            bytePtr += 4;
-            int zipCommentLength = getShortLe(tempBytes, bytePtr);
-            bytePtr += 2;
-
-            if (zipCommentLength < 0) {
-                break;
+            if (zipCommentLength < 4096) {
+                var zipComment = stream.readAsciiString(zipCommentLength);
+            } else {
+                stream.seek(zipCommentLength, 1);
             }
-            fileSize += zipCommentLength;
-            disk.skipBytes(zipCommentLength);
-            haveHeader = true;
+
         } else {
             break;
         }
-
     }
-
 }
