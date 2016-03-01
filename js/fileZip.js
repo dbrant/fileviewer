@@ -35,7 +35,8 @@ function parseFormat(reader)
 }
 
 function zipReadContents(stream, results, fileList) {
-    var headerSig;
+    var chunkType;
+    var fileName;
     var versionNeeded, flags, compressionMethod;
     var lastModTime, lastModDate, crc32;
     var compressedSize, uncompressedSize, fileNameLength;
@@ -43,10 +44,15 @@ function zipReadContents(stream, results, fileList) {
     var node;
 
     while (!stream.eof()) {
-        //read local file header...
-        headerSig = stream.readUIntLe();
+        //read chunk type...
+        if (stream.readAsciiString(2) != "PK") {
+            break;
+        }
+        chunkType = stream.readUShortLe();
 
-        if (headerSig == 0x04034b50) {
+        node = results.add("0x" + chunkType.toString(16), zipChunkName(chunkType));
+
+        if (chunkType == 0x0403) {
             //compressed file data!
             versionNeeded = stream.readUShortLe();
             flags = stream.readUShortLe();
@@ -66,9 +72,8 @@ function zipReadContents(stream, results, fileList) {
             }
 
             //read file name...
-            var fileName = stream.readAsciiString(fileNameLength);
+            fileName = stream.readAsciiString(fileNameLength);
 
-            node = results.add("Local file header");
             node.add("Name", fileName);
             node.add("Size (compressed)", compressedSize);
             node.add("Size (uncompressed)", uncompressedSize);
@@ -90,19 +95,19 @@ function zipReadContents(stream, results, fileList) {
                 //    break;
                 //}
             }
-        } else if (headerSig == 0x08074b50) {
+        } else if (chunkType == 0x0807) {
 
             var dataCrc32 = stream.readUIntLe();
             var dataCompSize = stream.readUIntLe();
             var dataUncompSize = stream.readUIntLe();
 
-        } else if (headerSig == 0x08064b50) {
+        } else if (chunkType == 0x0806) {
 
             //archive extra data record!
             extraFieldLength = stream.readUIntLe();
             stream.seek(extraFieldLength, 1);
 
-        } else if (headerSig == 0x02014b50) {
+        } else if (chunkType == 0x0201) {
 
             //directory file header!
             var versionMadeBy = stream.readUShortLe();
@@ -123,26 +128,30 @@ function zipReadContents(stream, results, fileList) {
             var externalFileAttr = stream.readUIntLe();
             var relHeaderOffset = stream.readUIntLe();
 
-            //read file name...
-            stream.seek(fileNameLength, 1);
+            fileName = stream.readAsciiString(fileNameLength);
+
+            node.add("Name", fileName);
+            node.add("Size (compressed)", compressedSize);
+            node.add("Size (uncompressed)", uncompressedSize);
 
             //read extra field...
             stream.seek(extraFieldLength, 1);
 
             //read file comment...
-            if (fileCommentLength < 4096) {
+            if (fileCommentLength > 0 && fileCommentLength < 4096) {
                 var fileComment = stream.readAsciiString(fileCommentLength);
+                node.add("Comment", fileComment);
             } else {
                 stream.seek(fileCommentLength, 1);
             }
 
-        } else if (headerSig == 0x05054b50) {
+        } else if (chunkType == 0x0505) {
 
             //digital signature!
             var dataLength = stream.readUShortLe();
             stream.seek(dataLength, 1);
 
-        } else if (headerSig == 0x06064b50) {
+        } else if (chunkType == 0x0606) {
 
             //zip64 end of central directory!
             var sizeOfRecord = stream.readLongLe();
@@ -150,14 +159,14 @@ function zipReadContents(stream, results, fileList) {
                 stream.seek(sizeOfRecord, 1);
             }
 
-        } else if (headerSig == 0x07064b50) {
+        } else if (chunkType == 0x0706) {
 
             //zip64 end of central dir locator!
             var numberofDisk = stream.readUIntLe();
             var offsetToCentralDirRec = stream.readLongLe();
             var numTotalDisks = stream.readUIntLe();
 
-        } else if (headerSig == 0x06054b50) {
+        } else if (chunkType == 0x0605) {
 
             //directory file header!
             var diskNumber = stream.readUShortLe();
@@ -168,8 +177,9 @@ function zipReadContents(stream, results, fileList) {
             var offsetToCentralDir = stream.readUIntLe();
             var zipCommentLength = stream.readUShortLe();
 
-            if (zipCommentLength < 4096) {
+            if (zipCommentLength > 0 && zipCommentLength < 4096) {
                 var zipComment = stream.readAsciiString(zipCommentLength);
+                node.add("Comment", zipComment);
             } else {
                 stream.seek(zipCommentLength, 1);
             }
@@ -178,4 +188,18 @@ function zipReadContents(stream, results, fileList) {
             break;
         }
     }
+}
+
+function zipChunkName(id) {
+    switch (id)
+    {
+        case 0x0403: return "Local file header";
+        case 0x0806: return "Archive extra data";
+        case 0x0201: return "Central directory file header";
+        case 0x0505: return "Digital signature";
+        case 0x0606: return "Zip64 end of central directory record";
+        case 0x0706: return "Zip64 end of central directory locator";
+        case 0x0605: return "End of central directory record";
+    }
+    return "Unknown";
 }
