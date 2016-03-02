@@ -101,11 +101,16 @@ function zipReadContents(stream, results, fileList) {
             var dataCompSize = stream.readUIntLe();
             var dataUncompSize = stream.readUIntLe();
 
+            node.add("Size (compressed)", dataCompSize);
+            node.add("Size (uncompressed)", dataUncompSize);
+
         } else if (chunkType == 0x0806) {
 
             //archive extra data record!
             extraFieldLength = stream.readUIntLe();
             stream.seek(extraFieldLength, 1);
+
+            node.add("Size", extraFieldLength);
 
         } else if (chunkType == 0x0201) {
 
@@ -151,6 +156,8 @@ function zipReadContents(stream, results, fileList) {
             var dataLength = stream.readUShortLe();
             stream.seek(dataLength, 1);
 
+            node.add("Size", dataLength);
+
         } else if (chunkType == 0x0606) {
 
             //zip64 end of central directory!
@@ -158,6 +165,8 @@ function zipReadContents(stream, results, fileList) {
             if (sizeOfRecord > 0) {
                 stream.seek(sizeOfRecord, 1);
             }
+
+            node.add("Size", sizeOfRecord);
 
         } else if (chunkType == 0x0706) {
 
