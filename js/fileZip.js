@@ -21,12 +21,26 @@ function parseFormat(reader)
 	try {
 		var stream = new DataStream(reader);
 
+        var contentResults = new ResultNode("ZIP contents");
         var fileList = [];
-        zipReadContents(stream, results, fileList);
 
-        for (var i = 0; i < fileList.length; i++) {
-            //results.add(fileList[i]);
+        try {
+            zipReadContents(stream, contentResults, fileList);
+        } catch (e) {
+            console.log("Error while reading ZIP contents: " + e);
         }
+
+        var fileExt = "ZIP";
+        var fileType = "Standard ZIP file";
+
+        if (fileList.indexOf("word/document.xml") >= 0) {
+            fileExt = "DOCX";
+            fileType = "Microsoft Word (2010 and above) document";
+        }
+
+        results.add("File type", fileType);
+        results.add("File extension", fileExt);
+        results.addResult(contentResults);
 
     } catch(e) {
 		console.log("Error while reading ZIP: " + e);
