@@ -36,7 +36,14 @@ function parseFormat(reader)
         if (fileList.indexOf("word/document.xml") >= 0) {
             fileExt = "DOCX";
             fileType = "Microsoft Word (2010 and above) document";
+        } else if (fileList.indexOf("ppt/presentation.xml") >= 0) {
+            fileExt = "PPTX";
+            fileType = "Microsoft PowerPoint (2010 and above) presentation";
+        } else if (fileList.indexOf("xl/workbook.xml") >= 0) {
+            fileExt = "XLSX";
+            fileType = "Microsoft Excel (2010 and above) spreadsheet";
         }
+
 
         results.add("File type", fileType);
         results.add("File extension", fileExt);
