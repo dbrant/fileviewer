@@ -55,6 +55,20 @@ function parseFormat(reader)
         } else if (fileList.indexOf("snote/snote.xml") >= 0) {
             fileExt = "SNB";
             fileType = "Exported Samsung S-Note file";
+        } else if (fileList.indexOf("content/riffData.cdr") >= 0) {
+            fileExt = "CDR";
+            fileType = "CorelDraw image";
+        } else if (fileList.indexOf("Root.xml") >= 0 && fileList.indexOf("summary.xml") >= 0) {
+            if (fileList.indexOf("preview.png") >= 0) {
+                fileExt = "DPP";
+                fileType = "Serif DrawPlus document";
+            } else if (fileList.indexOf("preview.jpg") >= 0) {
+                fileExt = "PPP";
+                fileType = "Serif PagePlus document";
+            }
+        } else if (fileList.indexOf("doc.kml") >= 0) {
+            fileExt = "KMZ";
+            fileType = "Google Earth location data";
         } else if (mimeType.indexOf("opendocument.text") >= 0) {
             fileExt = "ODT";
             fileType = "OpenDocument text file";
