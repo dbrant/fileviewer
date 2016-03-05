@@ -23,9 +23,13 @@ function parseFormat(reader)
 
         var contentResults = new ResultNode("ZIP contents");
         var fileList = [];
+        var mimeType = "";
 
         try {
-            zipReadContents(stream, contentResults, fileList);
+            var zipInfo = zipReadContents(stream, contentResults, fileList);
+            if (zipInfo.mimeType !== undefined) {
+                mimeType = zipInfo.mimeType;
+            }
         } catch (e) {
             console.log("Error while reading ZIP contents: " + e);
         }
@@ -42,8 +46,31 @@ function parseFormat(reader)
         } else if (fileList.indexOf("xl/workbook.xml") >= 0) {
             fileExt = "XLSX";
             fileType = "Microsoft Excel (2010 and above) spreadsheet";
+        } else if (fileList.indexOf("FixedDocSeq.fdseq") >= 0) {
+            fileExt = "XPS";
+            fileType = "Microsoft XPS document";
+        } else if (fileList.indexOf("AndroidManifest.xml") >= 0) {
+            fileExt = "APK";
+            fileType = "Android application package";
+        } else if (fileList.indexOf("snote/snote.xml") >= 0) {
+            fileExt = "SNB";
+            fileType = "Exported Samsung S-Note file";
+        } else if (mimeType.indexOf("opendocument.text") >= 0) {
+            fileExt = "ODT";
+            fileType = "OpenDocument text file";
+        } else if (mimeType.indexOf("opendocument.spreadsheet") >= 0) {
+            fileExt = "ODS";
+            fileType = "OpenDocument spreadsheet";
+        } else if (mimeType.indexOf("opendocument.presentation") >= 0) {
+            fileExt = "ODP";
+            fileType = "OpenDocument presentation";
+        } else if (mimeType.indexOf("opendocument.graphics") >= 0) {
+            fileExt = "ODG";
+            fileType = "OpenDocument graphics file";
+        } else if (mimeType.indexOf("application/epub") >= 0) {
+            fileExt = "EPUB";
+            fileType = "Electronic publication or e-book";
         }
-
 
         results.add("File type", fileType);
         results.add("File extension", fileExt);
@@ -56,6 +83,7 @@ function parseFormat(reader)
 }
 
 function zipReadContents(stream, results, fileList) {
+    var zipInfo = {};
     var chunkType;
     var fileName;
     var versionNeeded, flags, compressionMethod;
@@ -104,7 +132,13 @@ function zipReadContents(stream, results, fileList) {
             }
 
             stream.seek(extraFieldLength, 1);
-            stream.seek(compressedSize, 1);
+
+            if (fileName == "mimetype" && compressedSize == uncompressedSize && compressedSize < 256) {
+                // it's trying to tell us something!
+                zipInfo.mimeType = stream.readAsciiString(compressedSize);
+            } else {
+                stream.seek(compressedSize, 1);
+            }
 
             //read data descriptor?
             if ((flags & 0x8) != 0) {
@@ -218,6 +252,7 @@ function zipReadContents(stream, results, fileList) {
             break;
         }
     }
+    return zipInfo;
 }
 
 function zipChunkName(id) {
