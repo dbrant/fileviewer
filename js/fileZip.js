@@ -150,6 +150,7 @@ function zipReadContents(stream, results, fileList) {
             if (fileName == "mimetype" && compressedSize == uncompressedSize && compressedSize < 256) {
                 // it's trying to tell us something!
                 zipInfo.mimeType = stream.readAsciiString(compressedSize);
+                node.add("MIME type", zipInfo.mimeType);
             } else {
                 stream.seek(compressedSize, 1);
             }
