@@ -202,6 +202,7 @@
                 resultStr += getKeyValueInfoItem("Detected format", format.ext.toUpperCase() + " &mdash; " + format.shortDesc);
             }
             resultStr += getKeyValueInfoItem("Format info on <abbr title='Just Solve the File Format Problem'>JSFFP</abbr>", "<a href='http://fileformats.archiveteam.org/wiki/" + fileExt.toUpperCase() + "'>" + fileExt.toUpperCase() + "</a>");
+            resultStr += getKeyValueInfoItem("Format info on ForensicsWiki", "<a href='http://forensicswiki.org/wiki/" + fileExt.toUpperCase() + "'>" + fileExt.toUpperCase() + "</a>");
             basicInfoDiv.html(resultStr);
         }
 
