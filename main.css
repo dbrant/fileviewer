@@ -118,6 +118,10 @@ h1 {
     margin: 16px;
     padding: 16px;
 }
+.basicinfo a {
+    color: #355;
+    text-decoration: underline;
+}
 
 .detailedinfo {
     background: #f4f4f4;
