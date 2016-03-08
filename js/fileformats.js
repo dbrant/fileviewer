@@ -301,6 +301,17 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("psd",
+        "Adobe Photoshop image.",
+        "",
+        [ "tiff.js", "fileJpg.js", "filePsd.js" ],
+        function(reader) {
+            if ((reader.byteAt(0x0) == 0x38) && (reader.byteAt(0x1) == 0x42) && (reader.byteAt(0x2) == 0x50) && (reader.byteAt(0x3) == 0x53) && (reader.byteAt(0x5) == 0x1)) {
+                return true;
+            }
+            return false;
         })
 
 ];
