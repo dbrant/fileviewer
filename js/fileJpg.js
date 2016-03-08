@@ -165,13 +165,17 @@ function parseJpgStructure(reader, offset)
                         subNode.add("Horizontal density", xDens.toString() + " " + dUnits);
                         subNode.add("Vertical density", yDens.toString() + " " + dUnits);
                     }
+                    else if ((segmentType == 0xED) && (reader.getAsciiStringAt(position, 9) == "Photoshop"))
+                    {
+                        subNode = node.add("Image resources", reader.getAsciiStringAt(position, 13));
+                        psdParseImageResources(reader, subNode, position + 14, segmentLength - 14);
+                    }
                 }
                 else if (segmentType == 0xFE) {
                     var commentStr = reader.getAsciiStringAt(position, segmentLength);
                     node.add("Comment", commentStr);
                 }
             }
-
         }
     } catch(e) {
         console.log("Error while reading JPG: " + e);

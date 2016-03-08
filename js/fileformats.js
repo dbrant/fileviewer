@@ -47,7 +47,7 @@ var FileFormatList = [
 	new FileFormat("jpg",
         "Lossy format widely used for storing photos and images in digital cameras and the web.",
         "",
-        [ "tiff.js", "fileJpg.js" ],
+        [ "tiff.js", "filePsd.js", "fileJpg.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0xFF) && (reader.byteAt(1) == 0xD8) && (reader.byteAt(2) == 0xFF)
                 && (reader.byteAt(3) == 0xE0 || reader.byteAt(3) == 0xE1 || reader.byteAt(3) == 0xFE)) {
