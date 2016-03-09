@@ -69,7 +69,6 @@
                     })
                     .on("drop", function(event) {
                         event.preventDefault();
-                        $("#drophint").hide();
                         $("#previewCanvas").show();
                         holder.removeClass("hover");
                         if (!event.originalEvent.dataTransfer) {
@@ -92,6 +91,7 @@
                 var dataView = new DataView(buf);
                 var reader = new DataReader(dataView);
 
+                $("#drophint").hide();
                 clearCanvas();
 
                 reader.onGetPreviewImage = function(imageSrc) {
