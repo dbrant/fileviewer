@@ -69,7 +69,6 @@
                     })
                     .on("drop", function(event) {
                         event.preventDefault();
-                        $("#previewCanvas").show();
                         holder.removeClass("hover");
                         if (!event.originalEvent.dataTransfer) {
                             console.log("No data found in dropped object.");
@@ -92,6 +91,7 @@
                 var reader = new DataReader(dataView);
 
                 $("#drophint").hide();
+                $("#previewCanvas").show();
                 clearCanvas();
 
                 reader.onGetPreviewImage = function(imageSrc) {
