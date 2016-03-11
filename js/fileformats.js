@@ -312,6 +312,29 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("", "", "",
+        [ "fileOgg.js" ],
+        function(reader) {
+            if ((reader.byteAt(0x0) == 0x4F) && (reader.byteAt(0x1) == 0x67) && (reader.byteAt(0x2) == 0x67) && (reader.byteAt(0x3) == 0x53)) {
+                var oggType = reader.getAsciiStringAt(0x1D, 6);
+                if (oggType == "vorbis") {
+                    this.ext = "oga";
+                    this.shortDesc = "Ogg Vorbis audio.";
+                    this.longDesc = "";
+                } else if (oggType == "theora") {
+                    this.ext = "ogv";
+                    this.shortDesc = "Ogg Theora video.";
+                    this.longDesc = "";
+                } else {
+                    this.ext = "ogg";
+                    this.shortDesc = "Ogg container format.";
+                    this.longDesc = "";
+                }
+                return true;
+            }
+            return false;
         })
 
 ];
