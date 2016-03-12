@@ -283,7 +283,7 @@ var FileFormatList = [
     new FileFormat("mp3",
         "MPEG-1 or MPEG-2 Audio Layer III.",
         "",
-        [ "tiff.js", "fileJpg.js", "filePng.js", "fileMp3.js" ],
+        [ "tiff.js", "fileJpg.js", "filePng.js", "filePsd.js", "fileMp3.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x49) && (reader.byteAt(0x1) == 0x44) && (reader.byteAt(0x2) == 0x33)
                 && (reader.byteAt(0x3) > 1) && (reader.byteAt(0x3) < 8)) {
