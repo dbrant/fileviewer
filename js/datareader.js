@@ -250,26 +250,36 @@ var DataStream = function(dReader, initialOffset) {
         return result;
     };
 
-    this.readUtf16BeString = function(length) {
+    this.readUtf16BeString = function(length, hasHeader) {
         var result = "";
         if (length <= 2) {
             return result;
         }
-        this.skip(2);
-        var chars = (length - 2) / 2;
+        var chars;
+        if (hasHeader !== undefined && hasHeader == true) {
+            this.skip(2);
+            chars = (length - 2) / 2;
+        } else {
+            chars = length / 2;
+        }
         for (var i = 0; i < chars; i++) {
             result += String.fromCharCode(this.readUShortBe());
         }
         return result;
     };
 
-    this.readUtf16LeString = function(length) {
+    this.readUtf16LeString = function(length, hasHeader) {
         var result = "";
         if (length <= 2) {
             return result;
         }
-        this.skip(2);
-        var chars = (length - 2) / 2;
+        var chars;
+        if (hasHeader !== undefined && hasHeader == true) {
+            this.skip(2);
+            chars = (length - 2) / 2;
+        } else {
+            chars = length / 2;
+        }
         for (var i = 0; i < chars; i++) {
             result += String.fromCharCode(this.readUShortLe());
         }

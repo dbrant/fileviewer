@@ -22,14 +22,10 @@ function parseFormat(reader)
 		var stream = new DataStream(reader);
 
         var contentResults = new ResultNode("OLE contents");
-        var fileList = [];
-        var mimeType = "";
+        var dirList = [];
 
         try {
-            var zipInfo = zipReadContents(stream, contentResults, fileList);
-            if (zipInfo.mimeType !== undefined) {
-                mimeType = zipInfo.mimeType;
-            }
+            oleReadContents(stream, contentResults, dirList);
         } catch (e) {
             console.log("Error while reading OLE contents: " + e);
         }
@@ -37,53 +33,12 @@ function parseFormat(reader)
         var fileExt = "OLE";
         var fileType = "Generic/unknown OLE file";
 
-        if (fileList.indexOf("word/document.xml") >= 0) {
-            fileExt = "DOCX";
-            fileType = "Microsoft Word (2010 and above) document";
-        } else if (fileList.indexOf("ppt/presentation.xml") >= 0) {
-            fileExt = "PPTX";
-            fileType = "Microsoft PowerPoint (2010 and above) presentation";
-        } else if (fileList.indexOf("xl/workbook.xml") >= 0) {
-            fileExt = "XLSX";
-            fileType = "Microsoft Excel (2010 and above) spreadsheet";
-        } else if (fileList.indexOf("FixedDocSeq.fdseq") >= 0) {
-            fileExt = "XPS";
-            fileType = "Microsoft XPS document";
-        } else if (fileList.indexOf("AndroidManifest.xml") >= 0) {
-            fileExt = "APK";
-            fileType = "Android application package";
-        } else if (fileList.indexOf("snote/snote.xml") >= 0) {
-            fileExt = "SNB";
-            fileType = "Exported Samsung S-Note file";
-        } else if (fileList.indexOf("content/riffData.cdr") >= 0) {
-            fileExt = "CDR";
-            fileType = "CorelDraw image";
-        } else if (fileList.indexOf("Root.xml") >= 0 && fileList.indexOf("summary.xml") >= 0) {
-            if (fileList.indexOf("preview.png") >= 0) {
-                fileExt = "DPP";
-                fileType = "Serif DrawPlus document";
-            } else if (fileList.indexOf("preview.jpg") >= 0) {
-                fileExt = "PPP";
-                fileType = "Serif PagePlus document";
-            }
-        } else if (fileList.indexOf("doc.kml") >= 0) {
-            fileExt = "KMZ";
-            fileType = "Google Earth location data";
-        } else if (mimeType.indexOf("opendocument.text") >= 0) {
-            fileExt = "ODT";
-            fileType = "OpenDocument text file";
-        } else if (mimeType.indexOf("opendocument.spreadsheet") >= 0) {
-            fileExt = "ODS";
-            fileType = "OpenDocument spreadsheet";
-        } else if (mimeType.indexOf("opendocument.presentation") >= 0) {
-            fileExt = "ODP";
-            fileType = "OpenDocument presentation";
-        } else if (mimeType.indexOf("opendocument.graphics") >= 0) {
-            fileExt = "ODG";
-            fileType = "OpenDocument graphics file";
-        } else if (mimeType.indexOf("application/epub") >= 0) {
-            fileExt = "EPUB";
-            fileType = "Electronic publication or e-book";
+        if (dirList.indexOf("WordDocument") >= 0) {
+            fileExt = "DOC";
+            fileType = "Microsoft Word (2007 and older) document";
+        } else if (dirList.indexOf("Workbook") >= 0) {
+            fileExt = "DOC";
+            fileType = "Microsoft Word (2007 and older) document";
         }
 
         results.add("File type", fileType);
@@ -96,11 +51,106 @@ function parseFormat(reader)
 	return results;
 }
 
-function oleReadContents(stream, results, fileList) {
-    while (!stream.eof()) {
+function oleReadContents(stream, results, dirNames) {
+    stream.seek(24, 0);
 
+    var oleMinorVer = stream.readUShortLe();
+    var oleDllVer = stream.readUShortLe();
+    var oleByteOrder = stream.readUShortLe();
+    var oleSectorShift = stream.readUShortLe();
+    var oleMiniSectorShift = stream.readUShortLe();
+    var oleSectorSize = (1 << oleSectorShift);
 
+    stream.seek(10, 1);
 
+    if ((oleSectorShift != 0x9) && (oleSectorShift != 0xC)) {
+        console.log("Warning: bad oleSectorShift");
+        return;
+    }
 
+    var oleNumFatBlocks = stream.readUIntLe();
+    var oleRootStartBlock = stream.readUIntLe();
+    var oleDfSig = stream.readUIntLe();
+    var oleMiniSectorCutoff = stream.readUIntLe();
+    var oleDirFlag = stream.readUIntLe();
+    var oleCSectMiniFat = stream.readUIntLe();
+    var oleFatNextBlock = stream.readUIntLe();
+    var oleNumExtraFatBlocks = stream.readUIntLe();
+
+    if (oleNumFatBlocks > 100000) {
+        console.log("Warning: bad oleNumFatBlocks");
+        return;
+    }
+    if (oleNumExtraFatBlocks > 100000) {
+        console.log("Warning: bad oleNumExtraFatBlocks");
+        return;
+    }
+
+    var numFatEntries = 0;
+    var fatOffset = 0;
+    if (oleNumFatBlocks == 0) {
+        fatOffset = stream.position;
+        numFatEntries = 109;
+    }
+    else {
+        fatOffset = (stream.readUIntLe() << oleSectorShift) + oleSectorSize;
+        numFatEntries = ((oleNumFatBlocks << oleSectorShift) / 4);
+    }
+
+    if (numFatEntries > 65535) {
+        console.log("Warning: bad numFatEntries");
+        return;
+    }
+
+    var i = 0;
+    var blockOffset;
+    var badStuff = false;
+    for (var block = oleRootStartBlock; (block < numFatEntries) && (i < numFatEntries); i++) {
+        if (block == 0xFFFFFFFE) {
+            break;
+        }
+        var offsetRootDir = oleSectorSize + (block << oleSectorShift);
+        var sid;
+
+        for (sid = 0; sid < oleSectorSize / 128; sid++) {
+            stream.seek(offsetRootDir, 0);
+
+            var dirName = stream.readUtf16LeString(64);
+            var nameSize = stream.readUShortLe();
+            nameSize = (nameSize / 2 - 1);
+            if (nameSize > 2048) {
+                badStuff = true;
+                break;
+            }
+            if (nameSize < 32) {
+                dirName = dirName.substring(0, nameSize);
+
+                var dirType = stream.readByte();
+                if (dirType == 0) {
+                    break;
+                }
+                var dirFlags = stream.readByte();
+                var prevDirent = stream.readUIntLe();
+                var nextDirent = stream.readUIntLe();
+                var sidChild = stream.readUIntLe();
+                // clsid (16 bytes)
+                //ehh... don't care about the rest
+
+                results.add("Directory entry", dirName);
+                dirNames.push(dirName);
+            }
+
+            offsetRootDir += 128;
+        }
+        if (badStuff) {
+            break;
+        }
+
+        //read the next block
+        {
+            blockOffset = (block * 4 + fatOffset);
+            stream.seek(blockOffset, 0);
+            block = stream.readUIntLe();
+        }
     }
 }

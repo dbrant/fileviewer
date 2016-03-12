@@ -56,29 +56,15 @@ function mp3ReadSyncSafeInt(stream, length) {
     return sum;
 }
 
-function mp3ConvertID3String(reader, offset, length) {
-    var retStr = "";
-    if (reader.byteAt(offset) == 0) {
-        retStr = reader.getAsciiStringAt(offset + 1, length - 1); // ISO-8859-1
-    } else if (reader.byteAt(offset) == 1) {
-        retStr = reader.getAsciiStringAt(offset + 1, length - 1); // UTF-16LE
-    } else if (reader.byteAt(offset) == 2) {
-        retStr = reader.getAsciiStringAt(offset + 1, length - 1); // UTF-16BE
-    } else if (reader.byteAt(offset) == 3) {
-        retStr = reader.getAsciiStringAt(offset + 1, length - 1); // UTF-8
-    }
-    return retStr;
-}
-
 function id3ReadString(stream, length) {
     var retStr = "";
     var strType = stream.readByte();
     if (strType == 0) {
         retStr = stream.readAsciiString(length - 1); // ISO-8859-1
     } else if (strType == 1) {
-        retStr = stream.readUtf16LeString(length - 1);
+        retStr = stream.readUtf16LeString(length - 1, true);
     } else if (strType == 2) {
-        retStr = stream.readUtf16BeString(length - 1); // UTF-16BE
+        retStr = stream.readUtf16BeString(length - 1, true); // UTF-16BE
     } else if (strType == 3) {
         retStr = stream.readAsciiString(length - 1); // UTF-8
     } else {
