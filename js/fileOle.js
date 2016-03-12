@@ -37,8 +37,47 @@ function parseFormat(reader)
             fileExt = "DOC";
             fileType = "Microsoft Word (2007 and older) document";
         } else if (dirList.indexOf("Workbook") >= 0) {
-            fileExt = "DOC";
-            fileType = "Microsoft Word (2007 and older) document";
+            fileExt = "XLS";
+            fileType = "Microsoft Excel (2007 and older) spreadsheet";
+        } else if (oleDirListItemContains(dirList, "PowerPoint")) {
+            fileExt = "PPT";
+            fileType = "Microsoft PowerPoint (2007 and older) presentation";
+        } else if (oleDirListItemContains(dirList, "Visio")) {
+            fileExt = "VSD";
+            fileType = "Microsoft Visio (2007 and older) document";
+        } else if (oleDirListItemContains(dirList, "Revit")) {
+            fileExt = "RVT";
+            fileType = "Revit drawing";
+        } else if (oleDirListItemContains(dirList, "FlexiSIGN")) {
+            fileExt = "FS";
+            fileType = "FlexiSign document";
+        } else if (dirList.indexOf("Quill") >= 0 || dirList.indexOf("Escher") >= 0) {
+            fileExt = "PUB";
+            fileType = "Microsoft Publisher (2007 and older) document";
+        } else if (dirList.indexOf("QESession") >= 0) {
+            fileExt = "RPT";
+            fileType = "Crystal Reports document";
+        } else if (dirList.indexOf("CONTENTS") >= 0) {
+            fileExt = "WPS";
+            fileType = "Microsoft Outlook document";
+        } else if (dirList.indexOf("Data") >= 0 && dirList.indexOf("Audio") >= 0 && oleDirListItemContains(dirList, "data")) {
+            fileExt = "CP";
+            fileType = "Adobe Captivate document";
+        } else if (dirList.indexOf("Scene") >= 0) {
+            fileExt = "MAX";
+            fileType = "3DS Max document";
+        } else if (dirList.indexOf("NativeContent_MAIN") >= 0) {
+            fileExt = "QPW";
+            fileType = "Quattro Pro workbook";
+        } else if (dirList.indexOf("PerfectOffice_MAIN") >= 0) {
+            fileExt = "WB3";
+            fileType = "Quattro Pro version 3 workbook";
+        } else if (dirList.indexOf("ISolidWorksInformation") >= 0 || dirList.indexOf("swXmlContents") >= 0 || (dirList.indexOf("CMgr") >= 0 && dirList.indexOf("ThirdPty") >= 0)) {
+            fileExt = "SLDPRT";
+            fileType = "SolidWorks part document";
+        } else if (dirList.indexOf("Root Entry") >= 0 && dirList.indexOf("DocName") >= 0 && dirList.indexOf("Document") >= 0) {
+            fileExt = "PPP";
+            fileType = "Serif PagePlus document";
         }
 
         results.add("File type", fileType);
@@ -49,6 +88,15 @@ function parseFormat(reader)
 		console.log("Error while reading OLE: " + e);
 	}
 	return results;
+}
+
+function oleDirListItemContains(dirList, testString) {
+    for (var i = 0; i < dirList.length; i++) {
+        if (dirList[i].indexOf(testString) >= 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function oleReadContents(stream, results, dirNames) {
