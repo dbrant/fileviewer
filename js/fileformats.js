@@ -335,6 +335,17 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("ole",
+        "Microsoft OLE container format.",
+        "",
+        [ "fileOle.js" ],
+        function(reader) {
+            if ((reader.byteAt(0x0) == 0x0) && (reader.byteAt(0x1) == 0xCF) && (reader.byteAt(0x2) == 0x11) && (reader.byteAt(0x3) == 0xE0) && (reader.byteAt(0x4) == 0xA1) && (reader.byteAt(0x5) == 0xB1)) {
+                return true;
+            }
+            return false;
         })
 
 ];
