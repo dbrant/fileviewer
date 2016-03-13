@@ -26,14 +26,22 @@ function parseFormat(reader)
             throw "This is not a valid RIFF file.";
         }
 
-        var totalSize = stream.readUIntBe();
+        var bigEndian = false;
+        var totalSizeLe = reader.uintLeAt(4) + 8;
+        var totalSizeBe = reader.uintBeAt(4) + 8;
+
+        if (totalSizeBe > (reader.length() - 16) && totalSizeBe < (reader.length() + 16)) {
+            bigEndian = true;
+        }
+
+        stream.seek(4, 1);
         var riffType = stream.readAsciiString(4);
 
         var node = results.add("RIFF type", riffType);
 
         while (!stream.eof()) {
             var blockName = stream.readAsciiString(4);
-            var blockSize = stream.readUIntLe();
+            var blockSize = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
 
             var subnode = node.add(blockName, blockSize.toString() + " bytes");
 

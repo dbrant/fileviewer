@@ -231,6 +231,11 @@ var FileFormatList = [
                     this.shortDesc = "WebP image format.";
                     this.longDesc = "";
                     this.canPreviewNatively = true;
+                } else if (riffType == "NUND") {
+                    this.ext = "cpr";
+                    this.shortDesc = "Cubase project file.";
+                    this.longDesc = "";
+                    this.canPreviewNatively = false;
                 } else {
                     this.ext = "riff";
                     this.shortDesc = "General RIFF container format.";
