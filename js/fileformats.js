@@ -351,6 +351,17 @@ var FileFormatList = [
                 return true;
             }
             return false;
+        }),
+
+    new FileFormat("rar",
+        "Roshal Archive container.",
+        "",
+        [ "fileRar.js" ],
+        function(reader) {
+            if ((reader.byteAt(0x0) == 0x52) && (reader.byteAt(0x1) == 0x61) && (reader.byteAt(0x2) == 0x72) && (reader.byteAt(0x3) == 0x21) && (reader.byteAt(0x4) == 0x1A) && (reader.byteAt(0x5) == 0x7)) {
+                return true;
+            }
+            return false;
         })
 
 ];
