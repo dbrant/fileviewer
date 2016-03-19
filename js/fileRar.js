@@ -20,14 +20,34 @@ function parseFormat(reader)
 	var results = new ResultNode("RAR structure");
 	try {
 		var stream = new DataStream(reader);
+        var blockCrc, blockType, blockFlags;
+        var blockSize;
 
         while (!stream.eof()) {
-            //read chunk type...
-            if (stream.readAsciiString(2) != "PK") {
+            blockCrc = stream.readUShortLe();
+            blockType = stream.readByte();
+            blockFlags = stream.readUShortLe();
+            blockSize = stream.readUShortLe();
+            if ((blockFlags & 0x8000) != 0) {
+                blockSize += stream.readUIntLe();
+            }
+
+            results.add("Block 0x" + blockType.toString(16), blockSize.toString() + " bytes");
+
+            if ((blockType == 0x7B) && (blockCrc == 0x3DC4)) {
+                //end of file!
                 break;
             }
-            chunkType = stream.readUShortLe();
 
+            if ((blockType < 0x72) || (blockType > 0x78)) {
+                break;
+            }
+
+            if ((blockFlags & 0x8000) != 0) {
+                stream.seek(blockSize - 11, 1);
+            } else {
+                stream.seek(blockSize - 7, 1);
+            }
         }
 
     } catch(e) {
