@@ -20,6 +20,37 @@ function parseFormat(reader)
 	var results = new ResultNode("AMR structure");
 	try {
 		var stream = new DataStream(reader);
+        var headerSize = 0;
+        var numChannels = 1;
+        var wideBand = false;
+        var multiChannel = false;
+
+        if (reader.byteAt(5) == 0xA) {
+            // regular single-channel AMR file
+            headerSize = 6;
+        } else if (reader.byteAt(8) == 0xA) {
+            // single-channel AMR-WB file
+            headerSize = 9;
+            wideBand = true;
+        } else if (reader.byteAt(11) == 0xA) {
+            // multi-channel AMR file
+            multiChannel = true;
+            headerSize = 12;
+        } else if (reader.byteAt(14) == 0xA) {
+            // multi-channel AMR-WB file
+            multiChannel = true;
+            wideBand = true;
+            headerSize = 15;
+        }
+
+        results.add("Wide-band", wideBand);
+
+        stream.seek(headerSize, 0);
+
+        if (multiChannel) {
+            numChannels = stream.readUIntBe();
+        }
+        results.add("Channels", numChannels);
 
     } catch(e) {
 		console.log("Error while reading AMR: " + e);
