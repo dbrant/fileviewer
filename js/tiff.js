@@ -488,6 +488,7 @@ function tiffPopulateResults(reader, position, exifTagList, results, sendThumbna
             if (sendThumbnailToPreview) {
                 reader.onGetPreviewImage(thumbString);
             }
+            parseJpgStructure(reader, thumbOffset + position);
             thumbOffset = 0;
             thumbLength = 0;
         }
