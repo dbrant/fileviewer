@@ -484,11 +484,11 @@ function tiffPopulateResults(reader, position, exifTagList, results, sendThumbna
             thumbOffset += position;
             var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, thumbOffset, thumbLength);
             var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
-            results.add("Thumbnail", thumbHtml);
+            var thumbResult = results.add("Thumbnail", thumbHtml);
             if (sendThumbnailToPreview) {
                 reader.onGetPreviewImage(thumbString);
             }
-            parseJpgStructure(reader, thumbOffset + position);
+            thumbResult.addResult(parseJpgStructure(reader, thumbOffset));
             thumbOffset = 0;
             thumbLength = 0;
         }
