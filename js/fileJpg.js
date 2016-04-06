@@ -27,7 +27,7 @@ function parseJpgStructure(reader, offset)
     try {
         var stream = new DataStream(reader);
         if (offset !== undefined) {
-            stream.skip(offset);
+            stream.seek(offset, 0);
         }
 
         var segmentStart;
