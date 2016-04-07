@@ -121,13 +121,6 @@ var DataStream = function(dReader, initialOffset) {
         this.position += offset;
     };
 
-    this.rewind = function(offset) {
-        this.position -= offset;
-        if (this.position < 0) {
-            this.position = 0;
-        }
-    };
-
     this.seek = function(offset, whence) {
         if (whence == 0) {
             this.reset();
