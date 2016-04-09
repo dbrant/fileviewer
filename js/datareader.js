@@ -119,6 +119,9 @@ var DataStream = function(dReader, initialOffset) {
 
     this.skip = function(offset) {
         this.position += offset;
+        if (this.position < 0) {
+            this.position = 0;
+        }
     };
 
     this.seek = function(offset, whence) {
