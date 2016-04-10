@@ -47,7 +47,7 @@ var FileFormatList = [
 
 	new FileFormat("jpg", "Lossy format widely used for storing photos and images in digital cameras and the web.",
         "",
-        "",
+        "JPEG",
         [ "tiff.js", "filePsd.js", "fileJpg.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0xFF) && (reader.byteAt(1) == 0xD8) && (reader.byteAt(2) == 0xFF)
@@ -60,7 +60,7 @@ var FileFormatList = [
 
 	new FileFormat("png", "Lossless format widely used for storing graphics on the web.",
         "",
-        "",
+        "Portable Network Graphics",
         [ "filePng.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x89) && (reader.byteAt(1) == 0x50)
@@ -73,7 +73,7 @@ var FileFormatList = [
 
     new FileFormat("gif", "Lossless format widely used for storing graphics on the web.",
         "",
-        "",
+        "GIF",
         [ "fileGif.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x47) && (reader.byteAt(1) == 0x49)
@@ -86,7 +86,7 @@ var FileFormatList = [
 
     new FileFormat("tiff", "Lossless format used by digital cameras for storing raw images.",
         "",
-        "",
+        "Tagged Image File Format",
         [ "tiff.js", "fileTiff.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x49) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x2A) && (reader.byteAt(3) == 0)
