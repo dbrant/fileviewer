@@ -36,16 +36,17 @@ var FileFormat = function() {
     this.ext = arguments[0];
     this.shortDesc = arguments[1];
     this.longDesc = arguments[2];
-    this.detectScripts = arguments[3];
-    this.detectFunc = arguments[4];
+    this.wikiTitle = arguments[3];
+    this.detectScripts = arguments[4];
+    this.detectFunc = arguments[5];
     this.canPreviewNatively = false;
     this.parseFunc = null;
 };
 
 var FileFormatList = [
 
-	new FileFormat("jpg",
-        "Lossy format widely used for storing photos and images in digital cameras and the web.",
+	new FileFormat("jpg", "Lossy format widely used for storing photos and images in digital cameras and the web.",
+        "",
         "",
         [ "tiff.js", "filePsd.js", "fileJpg.js" ],
         function(reader) {
@@ -57,8 +58,8 @@ var FileFormatList = [
             return false;
         }),
 
-	new FileFormat("png",
-        "Lossless format widely used for storing graphics on the web.",
+	new FileFormat("png", "Lossless format widely used for storing graphics on the web.",
+        "",
         "",
         [ "filePng.js" ],
         function(reader) {
@@ -70,8 +71,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("gif",
-        "Lossless format widely used for storing graphics on the web.",
+    new FileFormat("gif", "Lossless format widely used for storing graphics on the web.",
+        "",
         "",
         [ "fileGif.js" ],
         function(reader) {
@@ -83,8 +84,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("tiff",
-        "Lossless format used by digital cameras for storing raw images.",
+    new FileFormat("tiff", "Lossless format used by digital cameras for storing raw images.",
+        "",
         "",
         [ "tiff.js", "fileTiff.js" ],
         function(reader) {
@@ -101,8 +102,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("ppm",
-        "Portable pixel map.",
+    new FileFormat("ppm", "Portable pixel map.",
+        "",
         "",
         [ "filePnm.js" ],
         function(reader) {
@@ -113,8 +114,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("mov",
-        "MP4/M4V/M4A/3GP/MOV audio/video.",
+    new FileFormat("mov", "MP4/M4V/M4A/3GP/MOV audio/video.",
+        "",
         "",
         [ "tiff.js", "fileJpg.js", "filePng.js", "fileMov.js" ],
         function(reader) {
@@ -124,8 +125,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("bpg",
-        "Better Portable Graphics format.",
+    new FileFormat("bpg", "Better Portable Graphics format.",
+        "",
         "",
         [ "bpgdec8.js", "fileBpg.js" ],
         function(reader) {
@@ -135,8 +136,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("tga",
-        "Truevision TARGA graphics file.",
+    new FileFormat("tga", "Truevision TARGA graphics file.",
+        "",
         "",
         [ "fileTga.js" ],
         function(reader) {
@@ -144,8 +145,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("pcx",
-        "ZSoft Paintbrush graphics.",
+    new FileFormat("pcx", "ZSoft Paintbrush graphics.",
+        "",
         "",
         [ "filePcx.js" ],
         function(reader) {
@@ -156,8 +157,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("sgi",
-        "Silicon Graphics images (.RGB, .BW).",
+    new FileFormat("sgi", "Silicon Graphics images (.RGB, .BW).",
+        "",
         "",
         [ "fileSgi.js" ],
         function(reader) {
@@ -168,8 +169,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("ras",
-        "Sun Raster image.",
+    new FileFormat("ras", "Sun Raster image.",
+        "",
         "",
         [ "fileRas.js" ],
         function(reader) {
@@ -179,8 +180,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("bmp",
-        "Windows or OS/2 bitmap.",
+    new FileFormat("bmp", "Windows or OS/2 bitmap.",
+        "",
         "",
         [ "fileBmp.js" ],
         function(reader) {
@@ -191,7 +192,7 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("", "", "",
+    new FileFormat("", "", "", "",
         [ "fileRiff.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x52) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x46) && (reader.byteAt(3) == 0x46)) {
@@ -247,8 +248,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("raf",
-        "Fujifilm raw image.",
+    new FileFormat("raf", "Fujifilm raw image.",
+        "",
         "",
         [ "tiff.js", "fileJpg.js", "fileRaf.js" ],
         function(reader) {
@@ -261,8 +262,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("xpm",
-        "X PixMap icon.",
+    new FileFormat("xpm", "X PixMap icon.",
+        "",
         "",
         [ "fileXpm.js" ],
         function(reader) {
@@ -273,8 +274,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("dicom",
-        "DICOM (Digital Imaging and Communications in Medicine) image.",
+    new FileFormat("dicom", "DICOM (Digital Imaging and Communications in Medicine) image.",
+        "",
         "",
         [ "fileDicom.js" ],
         function(reader) {
@@ -285,8 +286,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("mp3",
-        "MPEG-1 or MPEG-2 Audio Layer III.",
+    new FileFormat("mp3", "MPEG-1 or MPEG-2 Audio Layer III.",
+        "",
         "",
         [ "tiff.js", "fileJpg.js", "filePng.js", "filePsd.js", "fileMp3.js" ],
         function(reader) {
@@ -297,8 +298,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("zip",
-        "ZIP compressed file container.",
+    new FileFormat("zip", "ZIP compressed file container.",
+        "",
         "",
         [ "fileZip.js" ],
         function(reader) {
@@ -308,8 +309,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("psd",
-        "Adobe Photoshop image.",
+    new FileFormat("psd", "Adobe Photoshop image.",
+        "",
         "",
         [ "tiff.js", "fileJpg.js", "filePsd.js" ],
         function(reader) {
@@ -319,7 +320,7 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("", "", "",
+    new FileFormat("", "", "", "",
         [ "fileOgg.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x4F) && (reader.byteAt(0x1) == 0x67) && (reader.byteAt(0x2) == 0x67) && (reader.byteAt(0x3) == 0x53)) {
@@ -342,8 +343,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("ole",
-        "Microsoft OLE container format.",
+    new FileFormat("ole", "Microsoft OLE container format.",
+        "",
         "",
         [ "fileOle.js" ],
         function(reader) {
@@ -353,8 +354,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("rar",
-        "Roshal Archive container.",
+    new FileFormat("rar", "Roshal Archive container.",
+        "",
         "",
         [ "fileRar.js" ],
         function(reader) {
