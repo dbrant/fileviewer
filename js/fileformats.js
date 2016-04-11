@@ -104,7 +104,7 @@ var FileFormatList = [
 
     new FileFormat("ppm", "Portable pixel map.",
         "",
-        "",
+        "Netpbm format",
         [ "filePnm.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x50) && (reader.byteAt(1) >= 0x31) && (reader.byteAt(1) <= 0x36)
@@ -116,7 +116,7 @@ var FileFormatList = [
 
     new FileFormat("mov", "MP4/M4V/M4A/3GP/MOV audio/video.",
         "",
-        "",
+        "MPEG-4 Part 14",
         [ "tiff.js", "fileJpg.js", "filePng.js", "fileMov.js" ],
         function(reader) {
             if ((reader.byteAt(4) == 0x66) && (reader.byteAt(5) >= 0x74) && (reader.byteAt(6) <= 0x79) && (reader.byteAt(7) == 0x70)) {
@@ -127,7 +127,7 @@ var FileFormatList = [
 
     new FileFormat("bpg", "Better Portable Graphics format.",
         "",
-        "",
+        "Better Portable Graphics",
         [ "bpgdec8.js", "fileBpg.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) >= 0x50) && (reader.byteAt(2) <= 0x47) && (reader.byteAt(3) == 0xFB)) {
