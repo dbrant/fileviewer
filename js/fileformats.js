@@ -138,7 +138,7 @@ var FileFormatList = [
 
     new FileFormat("tga", "Truevision TARGA graphics file.",
         "",
-        "",
+        "Truevision TGA",
         [ "fileTga.js" ],
         function(reader) {
             // only detectable via extension
@@ -147,7 +147,7 @@ var FileFormatList = [
 
     new FileFormat("pcx", "ZSoft Paintbrush graphics.",
         "",
-        "",
+        "PCX",
         [ "filePcx.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0xA) && ((reader.byteAt(1) == 0x3) || (reader.byteAt(1) == 0x5)) && (reader.byteAt(2) == 0x1)
@@ -159,7 +159,7 @@ var FileFormatList = [
 
     new FileFormat("sgi", "Silicon Graphics images (.RGB, .BW).",
         "",
-        "",
+        "Silicon Graphics Image",
         [ "fileSgi.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x1) && (reader.byteAt(1) == 0xDA) && (reader.byteAt(2) == 0x1)
@@ -171,7 +171,7 @@ var FileFormatList = [
 
     new FileFormat("ras", "Sun Raster image.",
         "",
-        "",
+        "Sun Raster",
         [ "fileRas.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x59) && (reader.byteAt(1) == 0xA6) && (reader.byteAt(2) == 0x6A) && (reader.byteAt(3) == 0x95)) {
@@ -182,7 +182,7 @@ var FileFormatList = [
 
     new FileFormat("bmp", "Windows or OS/2 bitmap.",
         "",
-        "",
+        "BMP file format",
         [ "fileBmp.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) == 0x4D) && (reader.byteAt(6) == 0x0) && (reader.byteAt(8) == 0x0)) {
