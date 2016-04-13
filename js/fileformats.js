@@ -36,17 +36,18 @@ var FileFormat = function() {
     this.ext = arguments[0];
     this.shortDesc = arguments[1];
     this.longDesc = arguments[2];
-    this.detectScripts = arguments[3];
-    this.detectFunc = arguments[4];
+    this.wikiTitle = arguments[3];
+    this.detectScripts = arguments[4];
+    this.detectFunc = arguments[5];
     this.canPreviewNatively = false;
     this.parseFunc = null;
 };
 
 var FileFormatList = [
 
-	new FileFormat("jpg",
-        "Lossy format widely used for storing photos and images in digital cameras and the web.",
+	new FileFormat("jpg", "Lossy format widely used for storing photos and images in digital cameras and the web.",
         "",
+        "JPEG",
         [ "tiff.js", "filePsd.js", "fileJpg.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0xFF) && (reader.byteAt(1) == 0xD8) && (reader.byteAt(2) == 0xFF)
@@ -57,9 +58,9 @@ var FileFormatList = [
             return false;
         }),
 
-	new FileFormat("png",
-        "Lossless format widely used for storing graphics on the web.",
+	new FileFormat("png", "Lossless format widely used for storing graphics on the web.",
         "",
+        "Portable Network Graphics",
         [ "filePng.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x89) && (reader.byteAt(1) == 0x50)
@@ -70,9 +71,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("gif",
-        "Lossless format widely used for storing graphics on the web.",
+    new FileFormat("gif", "Lossless format widely used for storing graphics on the web.",
         "",
+        "GIF",
         [ "fileGif.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x47) && (reader.byteAt(1) == 0x49)
@@ -83,9 +84,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("tiff",
-        "Lossless format used by digital cameras for storing raw images.",
+    new FileFormat("tiff", "Lossless format used by digital cameras for storing raw images.",
         "",
+        "Tagged Image File Format",
         [ "tiff.js", "fileTiff.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x49) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x2A) && (reader.byteAt(3) == 0)
@@ -101,9 +102,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("ppm",
-        "Portable pixel map.",
+    new FileFormat("ppm", "Portable pixel map.",
         "",
+        "Netpbm format",
         [ "filePnm.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x50) && (reader.byteAt(1) >= 0x31) && (reader.byteAt(1) <= 0x36)
@@ -113,9 +114,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("mov",
-        "MP4/M4V/M4A/3GP/MOV audio/video.",
+    new FileFormat("mov", "MP4/M4V/M4A/3GP/MOV audio/video.",
         "",
+        "MPEG-4 Part 14",
         [ "tiff.js", "fileJpg.js", "filePng.js", "fileMov.js" ],
         function(reader) {
             if ((reader.byteAt(4) == 0x66) && (reader.byteAt(5) >= 0x74) && (reader.byteAt(6) <= 0x79) && (reader.byteAt(7) == 0x70)) {
@@ -124,9 +125,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("bpg",
-        "Better Portable Graphics format.",
+    new FileFormat("bpg", "Better Portable Graphics format.",
         "",
+        "Better Portable Graphics",
         [ "bpgdec8.js", "fileBpg.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) >= 0x50) && (reader.byteAt(2) <= 0x47) && (reader.byteAt(3) == 0xFB)) {
@@ -135,18 +136,18 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("tga",
-        "Truevision TARGA graphics file.",
+    new FileFormat("tga", "Truevision TARGA graphics file.",
         "",
+        "Truevision TGA",
         [ "fileTga.js" ],
         function(reader) {
             // only detectable via extension
             return false;
         }),
 
-    new FileFormat("pcx",
-        "ZSoft Paintbrush graphics.",
+    new FileFormat("pcx", "ZSoft Paintbrush graphics.",
         "",
+        "PCX",
         [ "filePcx.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0xA) && ((reader.byteAt(1) == 0x3) || (reader.byteAt(1) == 0x5)) && (reader.byteAt(2) == 0x1)
@@ -156,9 +157,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("sgi",
-        "Silicon Graphics images (.RGB, .BW).",
+    new FileFormat("sgi", "Silicon Graphics images (.RGB, .BW).",
         "",
+        "Silicon Graphics Image",
         [ "fileSgi.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x1) && (reader.byteAt(1) == 0xDA) && (reader.byteAt(2) == 0x1)
@@ -168,9 +169,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("ras",
-        "Sun Raster image.",
+    new FileFormat("ras", "Sun Raster image.",
         "",
+        "Sun Raster",
         [ "fileRas.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x59) && (reader.byteAt(1) == 0xA6) && (reader.byteAt(2) == 0x6A) && (reader.byteAt(3) == 0x95)) {
@@ -179,9 +180,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("bmp",
-        "Windows or OS/2 bitmap.",
+    new FileFormat("bmp", "Windows or OS/2 bitmap.",
         "",
+        "BMP file format",
         [ "fileBmp.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) == 0x4D) && (reader.byteAt(6) == 0x0) && (reader.byteAt(8) == 0x0)) {
@@ -192,6 +193,7 @@ var FileFormatList = [
         }),
 
     new FileFormat("", "", "",
+        "Resource Interchange File Format",
         [ "fileRiff.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x52) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x46) && (reader.byteAt(3) == 0x46)) {
@@ -247,8 +249,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("raf",
-        "Fujifilm raw image.",
+    new FileFormat("raf", "Fujifilm raw image.",
+        "",
         "",
         [ "tiff.js", "fileJpg.js", "fileRaf.js" ],
         function(reader) {
@@ -261,9 +263,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("xpm",
-        "X PixMap icon.",
+    new FileFormat("xpm", "X PixMap icon.",
         "",
+        "X PixMap",
         [ "fileXpm.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x2F) && (reader.byteAt(1) == 0x2A) && (reader.byteAt(2) == 0x20)
@@ -273,9 +275,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("dicom",
-        "DICOM (Digital Imaging and Communications in Medicine) image.",
+    new FileFormat("dicom", "DICOM (Digital Imaging and Communications in Medicine) image.",
         "",
+        "DICOM",
         [ "fileDicom.js" ],
         function(reader) {
             if ((reader.byteAt(0x80) == 0x44) && (reader.byteAt(0x81) == 0x49) && (reader.byteAt(0x82) == 0x43)
@@ -285,9 +287,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("mp3",
-        "MPEG-1 or MPEG-2 Audio Layer III.",
+    new FileFormat("mp3", "MPEG-1 or MPEG-2 Audio Layer III.",
         "",
+        "MP3",
         [ "tiff.js", "fileJpg.js", "filePng.js", "filePsd.js", "fileMp3.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x49) && (reader.byteAt(0x1) == 0x44) && (reader.byteAt(0x2) == 0x33)
@@ -297,9 +299,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("zip",
-        "ZIP compressed file container.",
+    new FileFormat("zip", "ZIP compressed file container.",
         "",
+        "Zip (file format)",
         [ "fileZip.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x50) && (reader.byteAt(0x1) == 0x4B) && (reader.byteAt(0x2) == 0x3) && (reader.byteAt(0x3) == 0x4)) {
@@ -308,9 +310,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("psd",
-        "Adobe Photoshop image.",
+    new FileFormat("psd", "Adobe Photoshop image.",
         "",
+        "Adobe_Photoshop#File_format",
         [ "tiff.js", "fileJpg.js", "filePsd.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x38) && (reader.byteAt(0x1) == 0x42) && (reader.byteAt(0x2) == 0x50) && (reader.byteAt(0x3) == 0x53) && (reader.byteAt(0x5) == 0x1)) {
@@ -320,6 +322,7 @@ var FileFormatList = [
         }),
 
     new FileFormat("", "", "",
+        "Ogg",
         [ "fileOgg.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x4F) && (reader.byteAt(0x1) == 0x67) && (reader.byteAt(0x2) == 0x67) && (reader.byteAt(0x3) == 0x53)) {
@@ -342,9 +345,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("ole",
-        "Microsoft OLE container format.",
+    new FileFormat("ole", "Microsoft OLE container format.",
         "",
+        "Object Linking and Embedding",
         [ "fileOle.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0xD0) && (reader.byteAt(0x1) == 0xCF) && (reader.byteAt(0x2) == 0x11) && (reader.byteAt(0x3) == 0xE0) && (reader.byteAt(0x4) == 0xA1) && (reader.byteAt(0x5) == 0xB1)) {
@@ -353,9 +356,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("rar",
-        "Roshal Archive container.",
+    new FileFormat("rar", "Roshal Archive container.",
         "",
+        "RAR (file format)",
         [ "fileRar.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x52) && (reader.byteAt(0x1) == 0x61) && (reader.byteAt(0x2) == 0x72) && (reader.byteAt(0x3) == 0x21) && (reader.byteAt(0x4) == 0x1A) && (reader.byteAt(0x5) == 0x7)) {
@@ -377,7 +380,7 @@ var FileFormatList = [
 
 ];
 
-var UnknownFileFormat = new FileFormat("", "Unknown file type", "", null, function() {
+var UnknownFileFormat = new FileFormat("", "Unknown file type", "", "", null, function() {
     return true;
 });
 

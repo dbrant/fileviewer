@@ -201,8 +201,11 @@
             if (format) {
                 resultStr += getKeyValueInfoItem("Detected format", format.ext.toUpperCase() + " &mdash; " + format.shortDesc);
             }
-            resultStr += getKeyValueInfoItem("Format info on <abbr title='Just Solve the File Format Problem'>JSFFP</abbr>", "<a href='http://fileformats.archiveteam.org/wiki/" + fileExt.toUpperCase() + "'>" + fileExt.toUpperCase() + "</a>");
-            resultStr += getKeyValueInfoItem("Format info on ForensicsWiki", "<a href='http://forensicswiki.org/wiki/" + fileExt.toUpperCase() + "'>" + fileExt.toUpperCase() + "</a>");
+            if (format.wikiTitle !== null && format.wikiTitle.length > 0) {
+                resultStr += getKeyValueInfoItem("On Wikipedia", "<a href='https://en.wikipedia.org/wiki/" + format.wikiTitle + "' target='_blank'>" + format.wikiTitle + "</a>");
+            }
+            resultStr += getKeyValueInfoItem("Format info on <abbr title='Just Solve the File Format Problem'>JSFFP</abbr>", "<a href='http://fileformats.archiveteam.org/wiki/" + fileExt.toUpperCase() + "' target='_blank'>" + fileExt.toUpperCase() + "</a>");
+            resultStr += getKeyValueInfoItem("Format info on ForensicsWiki", "<a href='http://forensicswiki.org/wiki/" + fileExt.toUpperCase() + "' target='_blank'>" + fileExt.toUpperCase() + "</a>");
             basicInfoDiv.html(resultStr);
         }
 
