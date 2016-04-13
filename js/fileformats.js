@@ -367,7 +367,7 @@ var FileFormatList = [
 
 ];
 
-var UnknownFileFormat = new FileFormat("", "Unknown file type", "", null, function() {
+var UnknownFileFormat = new FileFormat("", "Unknown file type", "", "", null, function() {
     return true;
 });
 
