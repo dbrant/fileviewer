@@ -192,7 +192,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("", "", "", "",
+    new FileFormat("", "", "",
+        "Resource Interchange File Format",
         [ "fileRiff.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x52) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x46) && (reader.byteAt(3) == 0x46)) {
@@ -264,7 +265,7 @@ var FileFormatList = [
 
     new FileFormat("xpm", "X PixMap icon.",
         "",
-        "",
+        "X PixMap",
         [ "fileXpm.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x2F) && (reader.byteAt(1) == 0x2A) && (reader.byteAt(2) == 0x20)
@@ -276,7 +277,7 @@ var FileFormatList = [
 
     new FileFormat("dicom", "DICOM (Digital Imaging and Communications in Medicine) image.",
         "",
-        "",
+        "DICOM",
         [ "fileDicom.js" ],
         function(reader) {
             if ((reader.byteAt(0x80) == 0x44) && (reader.byteAt(0x81) == 0x49) && (reader.byteAt(0x82) == 0x43)
@@ -288,7 +289,7 @@ var FileFormatList = [
 
     new FileFormat("mp3", "MPEG-1 or MPEG-2 Audio Layer III.",
         "",
-        "",
+        "MP3",
         [ "tiff.js", "fileJpg.js", "filePng.js", "filePsd.js", "fileMp3.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x49) && (reader.byteAt(0x1) == 0x44) && (reader.byteAt(0x2) == 0x33)
@@ -300,7 +301,7 @@ var FileFormatList = [
 
     new FileFormat("zip", "ZIP compressed file container.",
         "",
-        "",
+        "Zip (file format)",
         [ "fileZip.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x50) && (reader.byteAt(0x1) == 0x4B) && (reader.byteAt(0x2) == 0x3) && (reader.byteAt(0x3) == 0x4)) {
@@ -311,7 +312,7 @@ var FileFormatList = [
 
     new FileFormat("psd", "Adobe Photoshop image.",
         "",
-        "",
+        "Adobe_Photoshop#File_format",
         [ "tiff.js", "fileJpg.js", "filePsd.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x38) && (reader.byteAt(0x1) == 0x42) && (reader.byteAt(0x2) == 0x50) && (reader.byteAt(0x3) == 0x53) && (reader.byteAt(0x5) == 0x1)) {
@@ -320,7 +321,8 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("", "", "", "",
+    new FileFormat("", "", "",
+        "Ogg",
         [ "fileOgg.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x4F) && (reader.byteAt(0x1) == 0x67) && (reader.byteAt(0x2) == 0x67) && (reader.byteAt(0x3) == 0x53)) {
@@ -345,7 +347,7 @@ var FileFormatList = [
 
     new FileFormat("ole", "Microsoft OLE container format.",
         "",
-        "",
+        "Object Linking and Embedding",
         [ "fileOle.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0xD0) && (reader.byteAt(0x1) == 0xCF) && (reader.byteAt(0x2) == 0x11) && (reader.byteAt(0x3) == 0xE0) && (reader.byteAt(0x4) == 0xA1) && (reader.byteAt(0x5) == 0xB1)) {
@@ -356,7 +358,7 @@ var FileFormatList = [
 
     new FileFormat("rar", "Roshal Archive container.",
         "",
-        "",
+        "RAR (file format)",
         [ "fileRar.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x52) && (reader.byteAt(0x1) == 0x61) && (reader.byteAt(0x2) == 0x72) && (reader.byteAt(0x3) == 0x21) && (reader.byteAt(0x4) == 0x1A) && (reader.byteAt(0x5) == 0x7)) {
