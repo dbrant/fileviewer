@@ -471,8 +471,41 @@ function tiffReadStream(reader, position, results, sendThumbnailToPreview) {
 
 function tiffPopulateResults(reader, position, exifTagList, results, sendThumbnailToPreview) {
     var i, thumbOffset = 0, thumbLength = 0;
+    var gpsLatitude = 0, gpsLongitude = 0, gpsS = false, gpsW = false;
     for (i = 0; i < exifTagList.length; i++) {
         var node = results.add("[0x" + exifTagList[i].tagID.toString(16).toUpperCase() + "] " + getTiffTagName(exifTagList[i].tagID, exifTagList[i].ifdTag, exifTagList[i].makerNoteType), exifTagList[i].tagContents);
+
+        try {
+            if (exifTagList[i].ifdTag == 0x8825) {
+                if (exifTagList[i].tagID == 1) {
+                    gpsS = exifTagList[i].tagContents.indexOf("S") != -1;
+                } else if (exifTagList[i].tagID == 3) {
+                    gpsW = exifTagList[i].tagContents.indexOf("W") != -1;
+                } else if (exifTagList[i].tagID == 2) {
+                    var coords =  exifTagList[i].tagContents.split(" ");
+                    gpsLatitude = parseInt(coords[0]) + (parseFloat(coords[1]) / 60) + (parseFloat(coords[2]) / 3600);
+                } else if (exifTagList[i].tagID == 4) {
+                    coords = exifTagList[i].tagContents.split(" ");
+                    gpsLongitude = parseInt(coords[0]) + (parseFloat(coords[1]) / 60) + (parseFloat(coords[2]) / 3600);
+                }
+            }
+            if (gpsLatitude != 0 && gpsLongitude != 0) {
+                var zoom = 12;
+                if (gpsS) {
+                    gpsLatitude = -gpsLatitude;
+                }
+                if (gpsW) {
+                    gpsLongitude = -gpsLongitude;
+                }
+                node.add("<a target='_blank' href='https://www.openstreetmap.org/?mlat=" + gpsLatitude.toString() + "&mlon=" + gpsLongitude.toString() + "&zoom=" + zoom.toString() + "'>View on OpenStreetMap</a>");
+                node.add("<a target='_blank' href='https://maps.wikimedia.org/#" + zoom.toString() + "/" + gpsLatitude.toString() + "/" + gpsLongitude.toString() + "'>View on Wikimedia Maps</a>");
+                node.add("<a target='_blank' href='https://maps.google.com/maps?ll=" + gpsLatitude.toString() + "," + gpsLongitude.toString() + "&q=" + gpsLatitude.toString() + "," + gpsLongitude.toString() + "&hl=en&t=m&z=" + zoom.toString() + "'>View on Google Maps</a>");
+                gpsLatitude = 0;
+                gpsLongitude = 0;
+            }
+        } catch (e) {
+            console.log("Warning: failed to process GPS coordinates: " + e);
+        }
 
         if (exifTagList[i].tagID == 513) {
             thumbOffset = parseInt(exifTagList[i].tagContents);
