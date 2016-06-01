@@ -87,7 +87,7 @@ var FileFormatList = [
     new FileFormat("tiff", "Lossless format used by digital cameras for storing raw images.",
         "",
         "Tagged Image File Format",
-        [ "tiff.js", "fileTiff.js" ],
+        [ "tiff.js", "fileJpg.js", "fileTiff.js" ],
         function(reader) {
             if ((reader.byteAt(0) == 0x49) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x2A) && (reader.byteAt(3) == 0)
                 || (reader.byteAt(0) == 0x4D) && (reader.byteAt(1) == 0x4D) && (reader.byteAt(2) == 0) && (reader.byteAt(3) == 0x2A)) {
