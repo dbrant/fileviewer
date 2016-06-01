@@ -367,9 +367,9 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("amr",
-        "Adaptive Multi-Rate audio codec.",
+    new FileFormat("amr", "Adaptive Multi-Rate audio codec.",
         "",
+        "Adaptive Multi-Rate audio codec",
         [ "fileAmr.js" ],
         function(reader) {
             if ((reader.byteAt(0x0) == 0x23) && (reader.byteAt(0x1) == 0x21) && (reader.byteAt(0x2) == 0x41) && (reader.byteAt(0x3) == 0x4D) && (reader.byteAt(0x4) == 0x52)) {
