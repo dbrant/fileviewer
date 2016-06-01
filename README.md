@@ -9,7 +9,7 @@ This allows the user to drag and drop local files onto the browser, and see a co
 
 ## Current support
 
-This currently supports the following formats: JPG, TIFF, PNG, BPG, PPM, PGM, PBM.
+This currently supports the following formats: AMR, BMP, BPG, DICOM, GIF, JPG, MOV, MP3, OGG (OGA, OGV), OLE, PCX, PNG, PNM (PPM, PGM, PBM), PSD, RAF, RAR, RAS, RIFF, SGI, TGA, TIFF, WEBP, XPM, ZIP.
 
 ## Adding a custom format
 
