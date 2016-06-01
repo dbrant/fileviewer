@@ -526,7 +526,7 @@ function tiffPopulateResults(reader, position, exifTagList, results, sendThumbna
             thumbLength = 0;
         }
         if (exifTagList[i].subTags.length > 0) {
-            tiffPopulateResults(reader, position, exifTagList[i].subTags, node);
+            tiffPopulateResults(reader, position, exifTagList[i].subTags, node, sendThumbnailToPreview);
         }
     }
 }
