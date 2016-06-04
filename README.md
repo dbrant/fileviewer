@@ -7,6 +7,8 @@ This allows the user to drag and drop local files onto the browser, and see a co
 - Detect the correct internal format of the file, even if its extension is wrong.
 - Assist digital preservation experts by ensuring that obsolete formats continue to be supported, in an open-source way.
 
+Available at http://dbrant.github.io/fileviewer/
+
 ## Current support
 
 This currently supports the following formats: AMR, BMP, BPG, DICOM, GIF, JPG, MOV, MP3, OGG (OGA, OGV), OLE, PCX, PNG, PNM (PPM, PGM, PBM), PSD, RAF, RAR, RAS, RIFF, SGI, TGA, TIFF, WEBP, XPM, ZIP.
