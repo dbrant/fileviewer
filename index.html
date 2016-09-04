@@ -54,6 +54,8 @@
                 $("#saveJpgLink")[0].href = $("#previewCanvas")[0].toDataURL("image/jpeg");
             });
 
+            $("#supportedFormats").html(getSupportedFormats());
+
             holder.on("dragover", function(event) {
                         event.preventDefault();
                         if(!holder.hasClass("dragover")) {
@@ -272,7 +274,7 @@
 
 <div class="footer centered">
     All processing is done client-side, nothing will be uploaded anywhere.<br />
-    <small>Supported formats: AMR, BMP, BPG, DICOM, GIF, JPG, MOV, MP3, OGG (OGA, OGV), OLE, PCX, PNG, PNM (PPM, PGM, PBM), PSD, RAF, RAR, RAS, RIFF, SGI, TGA, TIFF, WEBP, XPM, ZIP.</small><br /><br />
+    <small>Supported file formats: <span id="supportedFormats"></span></small><br /><br />
     Copyright &copy; 2016 <a href="http://dmitrybrant.com">Dmitry Brant</a>. <a href="https://github.com/dbrant/fileviewer">Source code</a> and <a href="https://github.com/dbrant/fileviewer/blob/master/LICENSE">license</a> on GitHub.
 </div>
 

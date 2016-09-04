@@ -192,7 +192,7 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("", "", "",
+    new FileFormat("riff", "", "",
         "Resource Interchange File Format",
         [ "fileRiff.js" ],
         function(reader) {
@@ -321,7 +321,7 @@ var FileFormatList = [
             return false;
         }),
 
-    new FileFormat("", "", "",
+    new FileFormat("ogg", "", "",
         "Ogg",
         [ "fileOgg.js" ],
         function(reader) {
@@ -383,6 +383,17 @@ var FileFormatList = [
 var UnknownFileFormat = new FileFormat("", "Unknown file type", "", "", null, function() {
     return true;
 });
+
+function getSupportedFormats() {
+    var formats = "";
+    for (var i = 0; i < FileFormatList.length; i++) {
+        if (i > 0) {
+            formats += ", ";
+        }
+        formats += FileFormatList[i].ext;
+    }
+    return formats;
+}
 
 function detectFileFormat(reader) {
     var detectedFormat = null;
