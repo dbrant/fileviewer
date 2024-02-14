@@ -33,8 +33,14 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
     var maxPosition = stream.position + maxLen;
 
     while (stream.position < maxPosition) {
-        chunkLength = stream.readUIntBe() - 8;
+        chunkLength = stream.readUIntBe();
         chunkType = stream.readAsciiString(4);
+
+        if (chunkLength == 1) {
+            chunkLength = stream.readLongBe() - 16;
+        } else {
+            chunkLength -= 8;
+        }
 
         var node = results.add(chunkType, chunkLength.toString() + " bytes");
 
