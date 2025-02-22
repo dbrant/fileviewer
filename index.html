@@ -200,7 +200,9 @@
             resultStr += getKeyValueInfoItem("File name", file.name);
             resultStr += getKeyValueInfoItem("File extension", fileExt.toUpperCase());
             resultStr += getKeyValueInfoItem("File size", file.size.toString());
-            resultStr += getKeyValueInfoItem("Modified date", file.lastModifiedDate.toString());
+            if (file.lastModifiedDate) {
+                resultStr += getKeyValueInfoItem("Modified date", file.lastModifiedDate.toString());
+            }
             if (format) {
                 resultStr += getKeyValueInfoItem("Detected format", format.ext.toUpperCase() + " &mdash; " + format.shortDesc);
             }
