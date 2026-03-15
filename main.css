@@ -19,6 +19,8 @@
     --bg-toggle: rgba(0, 0, 0, 0.15);
     --bg-toggle-active: rgba(255, 255, 255, 0.85);
     --color-toggle-active: #333;
+    --bg-checker-a: #e8e8e8;
+    --bg-checker-b: #fff;
 }
 
 /* Dark theme (system preference) */
@@ -42,6 +44,8 @@
         --bg-toggle: rgba(255, 255, 255, 0.15);
         --bg-toggle-active: rgba(0, 0, 0, 0.5);
         --color-toggle-active: #eee;
+        --bg-checker-a: #2e312e;
+        --bg-checker-b: #363936;
     }
 }
 
@@ -65,6 +69,8 @@
     --bg-toggle: rgba(255, 255, 255, 0.15);
     --bg-toggle-active: rgba(0, 0, 0, 0.5);
     --color-toggle-active: #eee;
+    --bg-checker-a: #2e312e;
+    --bg-checker-b: #363936;
 }
 
 body {
@@ -149,7 +155,7 @@ a {
 }
 
 #holder {
-    background: url("preview_bak1.png");
+    background: repeating-conic-gradient(var(--bg-checker-a) 0% 25%, var(--bg-checker-b) 0% 50%) 0 0 / 24px 24px;
     background-clip: padding-box;
     border: 8px dashed var(--color-border);
     border-radius: 8px;
