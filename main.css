@@ -89,7 +89,7 @@ a {
 
 .header-bar {
     display: flex;
-    align-items: center;
+    align-items: top;
     justify-content: center;
     background: var(--bg-header);
     padding: 8px 16px;
@@ -107,7 +107,8 @@ a {
 
 .theme-switcher {
     position: absolute;
-    right: 16px;
+    top: 8px;
+    right: 8px;
     display: flex;
     gap: 2px;
     background: var(--bg-toggle);
@@ -119,7 +120,7 @@ a {
     border: none;
     background: transparent;
     color: var(--color-header);
-    padding: 6px 12px;
+    padding: 4px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
