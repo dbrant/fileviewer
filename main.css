@@ -1,27 +1,138 @@
 ﻿
+/* Light theme (default) */
+:root {
+    --bg-page: #f2f1ec;
+    --color-text: #333;
+    --color-link: #2a6a3a;
+    --bg-header: #6a9a6a;
+    --color-header: #fff;
+    --bg-surface: #fff;
+    --bg-info: #f0f0ec;
+    --color-info: #444;
+    --color-info-link: #2a5a5a;
+    --color-border: #aaa;
+    --color-border-hover: #555;
+    --color-muted: #888;
+    --bg-button: #5a7a8a;
+    --bg-button-accent: #4a7acc;
+    --bg-status: rgba(200, 180, 50, 0.25);
+    --bg-toggle: rgba(0, 0, 0, 0.15);
+    --bg-toggle-active: rgba(255, 255, 255, 0.85);
+    --color-toggle-active: #333;
+}
+
+/* Dark theme (system preference) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --bg-page: #2a2d2a;
+        --color-text: #ddd;
+        --color-link: #8fc898;
+        --bg-header: #3d5a3d;
+        --color-header: #eee;
+        --bg-surface: #363936;
+        --bg-info: #2e312e;
+        --color-info: #ccc;
+        --color-info-link: #7cb8d0;
+        --color-border: #555;
+        --color-border-hover: #999;
+        --color-muted: #777;
+        --bg-button: #4a6070;
+        --bg-button-accent: #4a6a9a;
+        --bg-status: rgba(255, 255, 128, 0.2);
+        --bg-toggle: rgba(255, 255, 255, 0.15);
+        --bg-toggle-active: rgba(0, 0, 0, 0.5);
+        --color-toggle-active: #eee;
+    }
+}
+
+/* Dark theme (explicit) */
+:root[data-theme="dark"] {
+    --bg-page: #2a2d2a;
+    --color-text: #ddd;
+    --color-link: #8fc898;
+    --bg-header: #3d5a3d;
+    --color-header: #eee;
+    --bg-surface: #363936;
+    --bg-info: #2e312e;
+    --color-info: #ccc;
+    --color-info-link: #7cb8d0;
+    --color-border: #555;
+    --color-border-hover: #999;
+    --color-muted: #777;
+    --bg-button: #4a6070;
+    --bg-button-accent: #4a6a9a;
+    --bg-status: rgba(255, 255, 128, 0.2);
+    --bg-toggle: rgba(255, 255, 255, 0.15);
+    --bg-toggle-active: rgba(0, 0, 0, 0.5);
+    --color-toggle-active: #eee;
+}
+
 body {
     margin: 0;
     font-family: sans-serif;
-    background: #454;
-    color: #e0e0e0;
+    background: var(--bg-page);
+    color: var(--color-text);
+    transition: background-color 0.3s, color 0.3s;
 }
 
 a {
-    color: #fff;
+    color: var(--color-link);
     font-weight: bold;
     text-decoration: none;
 }
 
-h1 {
+.header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-header);
+    padding: 8px 16px;
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+.header-bar h1 {
     font-family: 'Dancing Script',sans-serif;
     font-size: 400%;
-    color: #fff;
-    background: #686;
-    padding: 8px;
+    color: var(--color-header);
+    margin: 0;
+    padding: 0;
+}
+
+.theme-switcher {
+    position: absolute;
+    right: 16px;
+    display: flex;
+    gap: 2px;
+    background: var(--bg-toggle);
+    border-radius: 6px;
+    padding: 3px;
+}
+
+.theme-btn {
+    border: none;
+    background: transparent;
+    color: var(--color-header);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.7;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.theme-btn:hover {
+    opacity: 1;
+}
+
+.theme-btn.active {
+    background: var(--bg-toggle-active);
+    color: var(--color-toggle-active);
+    opacity: 1;
 }
 
 #topMenu {
-    background: #575;
+    background: var(--bg-header);
     text-align: right;
     padding: 8px;
 }
@@ -40,7 +151,7 @@ h1 {
 #holder {
     background: url("preview_bak1.png");
     background-clip: padding-box;
-    border: 8px dashed #ccc;
+    border: 8px dashed var(--color-border);
     border-radius: 8px;
     margin-bottom: 16px;
     min-height: 240px;
@@ -49,7 +160,7 @@ h1 {
     display: flex;
 }
 #holder.hover {
-    border: 8px dashed #333;
+    border: 8px dashed var(--color-border-hover);
 }
 
 #drophint {
@@ -58,7 +169,7 @@ h1 {
     width: 100%;
     font-size: 300%;
     font-weight: bold;
-    color: #aaa;
+    color: var(--color-muted);
     text-align: center;
 }
 
@@ -74,13 +185,14 @@ h1 {
 .topcontainer {
     margin: 16px;
     padding: 8px;
-    background: #fff;
+    background: var(--bg-surface);
     border-radius: 8px;
+    transition: background-color 0.3s;
 }
 
 .status {
     font-weight: bold;
-    background: rgba(255, 255, 128, 0.4);
+    background: var(--bg-status);
     border-radius: 4px;
     margin: 16px;
     padding: 16px;
@@ -93,16 +205,17 @@ h1 {
 .buttonLink {
     padding: 8px;
     color: #fff;
-    background: #678;
+    background: var(--bg-button);
     border-radius: 3px;
 }
 
 .buttonLink a {
+    color: #fff;
     font-weight: normal;
 }
 
 .browseButton {
-    background: #68e;
+    background: var(--bg-button-accent);
 }
 
 .previewImage {
@@ -112,27 +225,29 @@ h1 {
 }
 
 .basicinfo {
-    background: #f4f4f4;
-    color: #444;
+    background: var(--bg-info);
+    color: var(--color-info);
     border-radius: 4px;
     margin: 16px;
     padding: 16px;
+    transition: background-color 0.3s, color 0.3s;
 }
 .basicinfo a {
-    color: #355;
+    color: var(--color-info-link);
     text-decoration: underline;
 }
 
 .detailedinfo {
-    background: #f4f4f4;
-    color: #444;
+    background: var(--bg-info);
+    color: var(--color-info);
     border-radius: 4px;
     font-family: monospace;
     margin: 16px;
     padding: 16px;
+    transition: background-color 0.3s, color 0.3s;
 }
 .detailedinfo a {
-    color: #355;
+    color: var(--color-info-link);
     text-decoration: underline;
 }
 
@@ -141,7 +256,7 @@ h1 {
 }
 
 .detailKey {
-    color: #444;
+    color: var(--color-info);
     font-size: 120%;
 }
 
