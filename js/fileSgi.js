@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("SGI structure");
 	try {
@@ -25,13 +25,13 @@ function parseFormat(reader)
         var imgHeight;
         var x, y, i, j, k, b;
 
-        if (stream.readUShortBe() != 0x1DA) {
+        if (await stream.readUShortBe() != 0x1DA) {
             throw "This is not a valid SGI file.";
         }
 
-        var compressionType = stream.readByte();
-        var bytesPerComponent = stream.readByte();
-        var dimension = stream.readUShortBe();
+        var compressionType = await stream.readByte();
+        var bytesPerComponent = await stream.readByte();
+        var dimension = await stream.readUShortBe();
 
         if (compressionType > 1) {
             throw  "Unsupported compression type.";
@@ -43,11 +43,11 @@ function parseFormat(reader)
             throw "Unsupported dimension.";
         }
 
-        imgWidth = stream.readUShortBe();
-        imgHeight = stream.readUShortBe();
-        var zSize = stream.readUShortBe();
-        var pixMin = stream.readUIntBe();
-        var pixMax = stream.readUIntBe();
+        imgWidth = await stream.readUShortBe();
+        imgHeight = await stream.readUShortBe();
+        var zSize = await stream.readUShortBe();
+        var pixMin = await stream.readUIntBe();
+        var pixMax = await stream.readUIntBe();
 
         if ((imgWidth < 1) || (imgHeight < 1) || (imgWidth > 32767) || (imgHeight > 32767)) {
             throw "This SGI file appears to have invalid dimensions.";
@@ -55,8 +55,8 @@ function parseFormat(reader)
 
         stream.skip(4);
 
-        var imgName = stream.readAsciiString(80).replace("\0", "").trim();
-        var colorMapFormat = stream.readUIntBe();
+        var imgName = (await stream.readAsciiString(80)).replace("\0", "").trim();
+        var colorMapFormat = await stream.readUIntBe();
 
         stream.skip(404);
 
@@ -65,7 +65,7 @@ function parseFormat(reader)
         {
             var offsetTableLen = imgHeight * zSize;
             for (i=0; i<offsetTableLen; i++) {
-                offsets[i] = stream.readUIntBe();
+                offsets[i] = await stream.readUIntBe();
             }
             if (offsets.length > 0) {
                 stream.seek(offsets[0], 0);
@@ -93,7 +93,7 @@ function parseFormat(reader)
                         x = 0;
                         while (!stream.eof())
                         {
-                            i = stream.readByte();
+                            i = await stream.readByte();
                             j = i & 0x7F;
                             if (j == 0) {
                                 break;
@@ -103,7 +103,7 @@ function parseFormat(reader)
                             {
                                 for (k = 0; k < j; k++)
                                 {
-                                    b = stream.readByte();
+                                    b = await stream.readByte();
                                     bmpData[4 * (y * imgWidth + x)] = b;
                                     bmpData[4 * (y * imgWidth + x) + 1] = b;
                                     bmpData[4 * (y * imgWidth + x) + 2] = b;
@@ -113,7 +113,7 @@ function parseFormat(reader)
                             }
                             else
                             {
-                                b = stream.readByte();
+                                b = await stream.readByte();
                                 for (k = 0; k < j; k++)
                                 {
                                     bmpData[4 * (y * imgWidth + x)] = b;
@@ -144,7 +144,7 @@ function parseFormat(reader)
                             stream.seek(offsets[lineCount + scanLineIndex * imgHeight], 0);
                             while (!stream.eof())
                             {
-                                i = stream.readByte();
+                                i = await stream.readByte();
                                 j = i & 0x7F;
                                 if (j == 0) {
                                     break;
@@ -152,12 +152,12 @@ function parseFormat(reader)
                                 if ((i & 0x80) != 0)
                                 {
                                     for (k = 0; k < j; k++) {
-                                        scanline[scanLineIndex][scanPtr++] = stream.readByte();
+                                        scanline[scanLineIndex][scanPtr++] = await stream.readByte();
                                     }
                                 }
                                 else
                                 {
-                                    b = stream.readByte();
+                                    b = await stream.readByte();
                                     for (k = 0; k < j; k++) {
                                         scanline[scanLineIndex][scanPtr++] = b;
                                     }
@@ -186,7 +186,7 @@ function parseFormat(reader)
                     {
                         for (x = 0; x < imgWidth; x++)
                         {
-                            i = stream.readByte();
+                            i = await stream.readByte();
                             bmpData[4 * (y * imgWidth + x)] = i;
                             bmpData[4 * (y * imgWidth + x) + 1] = i;
                             bmpData[4 * (y * imgWidth + x) + 2] = i;
@@ -200,7 +200,7 @@ function parseFormat(reader)
                     {
                         for (x = 0; x < imgWidth; x++)
                         {
-                            i = stream.readByte();
+                            i = await stream.readByte();
                             bmpData[4 * (y * imgWidth + x)] = i;
                         }
                     }
@@ -208,7 +208,7 @@ function parseFormat(reader)
                     {
                         for (x = 0; x < imgWidth; x++)
                         {
-                            i = stream.readByte();
+                            i = await stream.readByte();
                             bmpData[4 * (y * imgWidth + x) + 1] = i;
                         }
                     }
@@ -216,7 +216,7 @@ function parseFormat(reader)
                     {
                         for (x = 0; x < imgWidth; x++)
                         {
-                            i = stream.readByte();
+                            i = await stream.readByte();
                             bmpData[4 * (y * imgWidth + x) + 2] = i;
                             bmpData[4 * (y * imgWidth + x) + 3] = 0xFF;
                         }

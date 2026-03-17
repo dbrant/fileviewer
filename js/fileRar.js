@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("RAR structure");
 	try {
@@ -24,12 +24,12 @@ function parseFormat(reader)
         var blockSize;
 
         while (!stream.eof()) {
-            blockCrc = stream.readUShortLe();
-            blockType = stream.readByte();
-            blockFlags = stream.readUShortLe();
-            blockSize = stream.readUShortLe();
+            blockCrc = await stream.readUShortLe();
+            blockType = await stream.readByte();
+            blockFlags = await stream.readUShortLe();
+            blockSize = await stream.readUShortLe();
             if ((blockFlags & 0x8000) != 0) {
-                blockSize += stream.readUIntLe();
+                blockSize += await stream.readUIntLe();
             }
 
             results.add("Block 0x" + blockType.toString(16), blockSize.toString() + " bytes");

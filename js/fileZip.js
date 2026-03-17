@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("ZIP structure");
 	try {
@@ -26,7 +26,7 @@ function parseFormat(reader)
         var mimeType = "";
 
         try {
-            var zipInfo = zipReadContents(stream, contentResults, fileList);
+            var zipInfo = await zipReadContents(stream, contentResults, fileList);
             if (zipInfo.mimeType !== undefined) {
                 mimeType = zipInfo.mimeType;
             }
@@ -96,7 +96,7 @@ function parseFormat(reader)
 	return results;
 }
 
-function zipReadContents(stream, results, fileList) {
+async function zipReadContents(stream, results, fileList) {
     var zipInfo = {};
     var chunkType;
     var fileName;
@@ -108,26 +108,26 @@ function zipReadContents(stream, results, fileList) {
 
     while (!stream.eof()) {
         //read chunk type...
-        if (stream.readAsciiString(2) != "PK") {
+        if (await stream.readAsciiString(2) != "PK") {
             break;
         }
-        chunkType = stream.readUShortLe();
+        chunkType = await stream.readUShortLe();
 
         node = results.add("0x" + chunkType.toString(16), zipChunkName(chunkType));
 
         if (chunkType == 0x0403) {
             //compressed file data!
-            versionNeeded = stream.readUShortLe();
-            flags = stream.readUShortLe();
-            compressionMethod = stream.readUShortLe();
-            lastModTime = stream.readUShortLe();
-            lastModDate = stream.readUShortLe();
+            versionNeeded = await stream.readUShortLe();
+            flags = await stream.readUShortLe();
+            compressionMethod = await stream.readUShortLe();
+            lastModTime = await stream.readUShortLe();
+            lastModDate = await stream.readUShortLe();
 
-            crc32 = stream.readUIntLe();
-            compressedSize = stream.readUIntLe();
-            uncompressedSize = stream.readUIntLe();
-            fileNameLength = stream.readUShortLe();
-            extraFieldLength = stream.readUShortLe();
+            crc32 = await stream.readUIntLe();
+            compressedSize = await stream.readUIntLe();
+            uncompressedSize = await stream.readUIntLe();
+            fileNameLength = await stream.readUShortLe();
+            extraFieldLength = await stream.readUShortLe();
 
             //sanity
             if (fileNameLength > 10000) {
@@ -135,7 +135,7 @@ function zipReadContents(stream, results, fileList) {
             }
 
             //read file name...
-            fileName = stream.readAsciiString(fileNameLength);
+            fileName = await stream.readAsciiString(fileNameLength);
 
             node.add("Name", fileName);
             node.add("Size (compressed)", compressedSize);
@@ -149,7 +149,7 @@ function zipReadContents(stream, results, fileList) {
 
             if (fileName == "mimetype" && compressedSize == uncompressedSize && compressedSize < 256) {
                 // it's trying to tell us something!
-                zipInfo.mimeType = stream.readAsciiString(compressedSize);
+                zipInfo.mimeType = await stream.readAsciiString(compressedSize);
                 node.add("MIME type", zipInfo.mimeType);
             } else {
                 stream.seek(compressedSize, 1);
@@ -167,9 +167,9 @@ function zipReadContents(stream, results, fileList) {
             }
         } else if (chunkType == 0x0807) {
 
-            var dataCrc32 = stream.readUIntLe();
-            var dataCompSize = stream.readUIntLe();
-            var dataUncompSize = stream.readUIntLe();
+            var dataCrc32 = await stream.readUIntLe();
+            var dataCompSize = await stream.readUIntLe();
+            var dataUncompSize = await stream.readUIntLe();
 
             node.add("Size (compressed)", dataCompSize);
             node.add("Size (uncompressed)", dataUncompSize);
@@ -177,7 +177,7 @@ function zipReadContents(stream, results, fileList) {
         } else if (chunkType == 0x0806) {
 
             //archive extra data record!
-            extraFieldLength = stream.readUIntLe();
+            extraFieldLength = await stream.readUIntLe();
             stream.seek(extraFieldLength, 1);
 
             node.add("Size", extraFieldLength);
@@ -185,25 +185,25 @@ function zipReadContents(stream, results, fileList) {
         } else if (chunkType == 0x0201) {
 
             //directory file header!
-            var versionMadeBy = stream.readUShortLe();
-            versionNeeded = stream.readUShortLe();
-            flags = stream.readUShortLe();
-            compressionMethod = stream.readUShortLe();
-            lastModTime = stream.readUShortLe();
-            lastModDate = stream.readUShortLe();
+            var versionMadeBy = await stream.readUShortLe();
+            versionNeeded = await stream.readUShortLe();
+            flags = await stream.readUShortLe();
+            compressionMethod = await stream.readUShortLe();
+            lastModTime = await stream.readUShortLe();
+            lastModDate = await stream.readUShortLe();
 
-            crc32 = stream.readUIntLe();
-            compressedSize = stream.readUIntLe();
-            uncompressedSize = stream.readUIntLe();
-            fileNameLength = stream.readUShortLe();
-            extraFieldLength = stream.readUShortLe();
-            var fileCommentLength = stream.readUShortLe();
-            var diskNumberStart = stream.readUShortLe();
-            var internalFileAttr = stream.readUShortLe();
-            var externalFileAttr = stream.readUIntLe();
-            var relHeaderOffset = stream.readUIntLe();
+            crc32 = await stream.readUIntLe();
+            compressedSize = await stream.readUIntLe();
+            uncompressedSize = await stream.readUIntLe();
+            fileNameLength = await stream.readUShortLe();
+            extraFieldLength = await stream.readUShortLe();
+            var fileCommentLength = await stream.readUShortLe();
+            var diskNumberStart = await stream.readUShortLe();
+            var internalFileAttr = await stream.readUShortLe();
+            var externalFileAttr = await stream.readUIntLe();
+            var relHeaderOffset = await stream.readUIntLe();
 
-            fileName = stream.readAsciiString(fileNameLength);
+            fileName = await stream.readAsciiString(fileNameLength);
 
             node.add("Name", fileName);
             node.add("Size (compressed)", compressedSize);
@@ -214,7 +214,7 @@ function zipReadContents(stream, results, fileList) {
 
             //read file comment...
             if (fileCommentLength > 0 && fileCommentLength < 4096) {
-                var fileComment = stream.readAsciiString(fileCommentLength);
+                var fileComment = await stream.readAsciiString(fileCommentLength);
                 node.add("Comment", fileComment);
             } else {
                 stream.seek(fileCommentLength, 1);
@@ -223,7 +223,7 @@ function zipReadContents(stream, results, fileList) {
         } else if (chunkType == 0x0505) {
 
             //digital signature!
-            var dataLength = stream.readUShortLe();
+            var dataLength = await stream.readUShortLe();
             stream.seek(dataLength, 1);
 
             node.add("Size", dataLength);
@@ -231,7 +231,7 @@ function zipReadContents(stream, results, fileList) {
         } else if (chunkType == 0x0606) {
 
             //zip64 end of central directory!
-            var sizeOfRecord = stream.readLongLe();
+            var sizeOfRecord = await stream.readLongLe();
             if (sizeOfRecord > 0) {
                 stream.seek(sizeOfRecord, 1);
             }
@@ -241,23 +241,23 @@ function zipReadContents(stream, results, fileList) {
         } else if (chunkType == 0x0706) {
 
             //zip64 end of central dir locator!
-            var numberofDisk = stream.readUIntLe();
-            var offsetToCentralDirRec = stream.readLongLe();
-            var numTotalDisks = stream.readUIntLe();
+            var numberofDisk = await stream.readUIntLe();
+            var offsetToCentralDirRec = await stream.readLongLe();
+            var numTotalDisks = await stream.readUIntLe();
 
         } else if (chunkType == 0x0605) {
 
             //directory file header!
-            var diskNumber = stream.readUShortLe();
-            var numDiskWithCentralDir = stream.readUShortLe();
-            var localCentralDirEntries = stream.readUShortLe();
-            var totalCentralDirEntries = stream.readUShortLe();
-            var sizeOfCentralDir = stream.readUIntLe();
-            var offsetToCentralDir = stream.readUIntLe();
-            var zipCommentLength = stream.readUShortLe();
+            var diskNumber = await stream.readUShortLe();
+            var numDiskWithCentralDir = await stream.readUShortLe();
+            var localCentralDirEntries = await stream.readUShortLe();
+            var totalCentralDirEntries = await stream.readUShortLe();
+            var sizeOfCentralDir = await stream.readUIntLe();
+            var offsetToCentralDir = await stream.readUIntLe();
+            var zipCommentLength = await stream.readUShortLe();
 
             if (zipCommentLength > 0 && zipCommentLength < 4096) {
-                var zipComment = stream.readAsciiString(zipCommentLength);
+                var zipComment = await stream.readAsciiString(zipCommentLength);
                 node.add("Comment", zipComment);
             } else {
                 stream.seek(zipCommentLength, 1);

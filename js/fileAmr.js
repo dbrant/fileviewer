@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("AMR structure");
 	try {
@@ -25,18 +25,18 @@ function parseFormat(reader)
         var wideBand = false;
         var multiChannel = false;
 
-        if (reader.byteAt(5) == 0xA) {
+        if (await reader.byteAt(5) == 0xA) {
             // regular single-channel AMR file
             headerSize = 6;
-        } else if (reader.byteAt(8) == 0xA) {
+        } else if (await reader.byteAt(8) == 0xA) {
             // single-channel AMR-WB file
             headerSize = 9;
             wideBand = true;
-        } else if (reader.byteAt(11) == 0xA) {
+        } else if (await reader.byteAt(11) == 0xA) {
             // multi-channel AMR file
             multiChannel = true;
             headerSize = 12;
-        } else if (reader.byteAt(14) == 0xA) {
+        } else if (await reader.byteAt(14) == 0xA) {
             // multi-channel AMR-WB file
             multiChannel = true;
             wideBand = true;
@@ -48,7 +48,7 @@ function parseFormat(reader)
         stream.seek(headerSize, 0);
 
         if (multiChannel) {
-            numChannels = stream.readUIntBe();
+            numChannels = await stream.readUIntBe();
         }
         results.add("Channels", numChannels);
 

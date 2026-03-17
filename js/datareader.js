@@ -15,8 +15,12 @@
  limitations under the License.
  */
 
-var DataReader = function(dView) {
-    this.dataView = dView;
+var DataReader = function(file) {
+    this.file = file;
+    this._length = file.size;
+    this._chunkSize = 1048576; // 1MB chunks
+    this._chunkCache = new Map();
+    this._maxCachedChunks = 32;
 
     this.getCanvasContext = function() {
         // override me
@@ -35,68 +39,100 @@ var DataReader = function(dView) {
     };
 
     this.length = function() {
-        return this.dataView.byteLength;
+        return this._length;
     };
 
-    this.byteAt = function(offset) {
-        return this.dataView.getUint8(offset);
+    this._ensureChunk = async function(offset) {
+        var chunkIndex = Math.floor(offset / this._chunkSize);
+        if (!this._chunkCache.has(chunkIndex)) {
+            if (this._chunkCache.size >= this._maxCachedChunks) {
+                var firstKey = this._chunkCache.keys().next().value;
+                this._chunkCache.delete(firstKey);
+            }
+            var start = chunkIndex * this._chunkSize;
+            var end = Math.min(start + this._chunkSize, this._length);
+            var buf = await this.file.slice(start, end).arrayBuffer();
+            this._chunkCache.set(chunkIndex, { dataView: new DataView(buf), base: start });
+        }
+        return this._chunkCache.get(chunkIndex);
     };
 
-    this.ushortLeAt = function(offset) {
-        return this.dataView.getUint16(offset, true);
+    this._readValue = async function(offset, size, readFunc) {
+        var chunkIndex = Math.floor(offset / this._chunkSize);
+        var chunkEndIndex = Math.floor((offset + size - 1) / this._chunkSize);
+        if (chunkIndex === chunkEndIndex) {
+            var chunk = await this._ensureChunk(offset);
+            return readFunc(chunk.dataView, offset - chunk.base);
+        } else {
+            // Value spans chunk boundary - read a small slice directly
+            var buf = await this.file.slice(offset, offset + size).arrayBuffer();
+            return readFunc(new DataView(buf), 0);
+        }
     };
 
-    this.ushortBeAt = function(offset) {
-        return this.dataView.getUint16(offset, false);
+    this.byteAt = async function(offset) {
+        return this._readValue(offset, 1, function(dv, o) { return dv.getUint8(o); });
     };
 
-    this.shortLeAt = function(offset) {
-        return this.dataView.getInt16(offset, true);
+    this.ushortLeAt = async function(offset) {
+        return this._readValue(offset, 2, function(dv, o) { return dv.getUint16(o, true); });
     };
 
-    this.shortBeAt = function(offset) {
-        return this.dataView.getInt16(offset, false);
+    this.ushortBeAt = async function(offset) {
+        return this._readValue(offset, 2, function(dv, o) { return dv.getUint16(o, false); });
     };
 
-    this.uintLeAt = function(offset) {
-        return this.dataView.getUint32(offset, true);
+    this.shortLeAt = async function(offset) {
+        return this._readValue(offset, 2, function(dv, o) { return dv.getInt16(o, true); });
     };
 
-    this.uintBeAt = function(offset) {
-        return this.dataView.getUint32(offset, false);
+    this.shortBeAt = async function(offset) {
+        return this._readValue(offset, 2, function(dv, o) { return dv.getInt16(o, false); });
     };
 
-    this.intLeAt = function(offset) {
-        return this.dataView.getInt32(offset, true);
+    this.uintLeAt = async function(offset) {
+        return this._readValue(offset, 4, function(dv, o) { return dv.getUint32(o, true); });
     };
 
-    this.intBeAt = function(offset) {
-        return this.dataView.getInt32(offset, false);
+    this.uintBeAt = async function(offset) {
+        return this._readValue(offset, 4, function(dv, o) { return dv.getUint32(o, false); });
     };
 
-    this.floatLeAt = function(offset) {
-        return this.dataView.getFloat32(offset, true);
+    this.intLeAt = async function(offset) {
+        return this._readValue(offset, 4, function(dv, o) { return dv.getInt32(o, true); });
     };
 
-    this.floatBeAt = function(offset) {
-        return this.dataView.getFloat32(offset, false);
+    this.intBeAt = async function(offset) {
+        return this._readValue(offset, 4, function(dv, o) { return dv.getInt32(o, false); });
     };
 
-    this.doubleLeAt = function(offset) {
-        return this.dataView.getFloat64(offset, true);
+    this.floatLeAt = async function(offset) {
+        return this._readValue(offset, 4, function(dv, o) { return dv.getFloat32(o, true); });
     };
 
-    this.doubleBeAt = function(offset) {
-        return this.dataView.getFloat64(offset, false);
+    this.floatBeAt = async function(offset) {
+        return this._readValue(offset, 4, function(dv, o) { return dv.getFloat32(o, false); });
     };
 
-    this.getAsciiStringAt = function(offset, length) {
+    this.doubleLeAt = async function(offset) {
+        return this._readValue(offset, 8, function(dv, o) { return dv.getFloat64(o, true); });
+    };
+
+    this.doubleBeAt = async function(offset) {
+        return this._readValue(offset, 8, function(dv, o) { return dv.getFloat64(o, false); });
+    };
+
+    this.getAsciiStringAt = async function(offset, length) {
         var result = "";
         for (var i = 0; i < length; i++) {
-            result += String.fromCharCode(this.byteAt(offset + i));
+            result += String.fromCharCode(await this.byteAt(offset + i));
         }
         return result;
-    }
+    };
+
+    this.getSliceAsArrayBuffer = async function(offset, length) {
+        return this.file.slice(offset, offset + length).arrayBuffer();
+    };
 
 };
 
@@ -136,117 +172,117 @@ var DataStream = function(dReader, initialOffset) {
         }
     };
 
-    this.readByte = function() {
-        var b = this.reader.byteAt(this.position);
+    this.readByte = async function() {
+        var b = await this.reader.byteAt(this.position);
         this.position++;
         return b;
     };
 
-    this.readUShortLe = function() {
-        var r = this.reader.ushortLeAt(this.position);
+    this.readUShortLe = async function() {
+        var r = await this.reader.ushortLeAt(this.position);
         this.position += 2;
         return r;
     };
 
-    this.readUShortBe = function() {
-        var r = this.reader.ushortBeAt(this.position);
+    this.readUShortBe = async function() {
+        var r = await this.reader.ushortBeAt(this.position);
         this.position += 2;
         return r;
     };
 
-    this.readShortLe = function() {
-        var r = this.reader.shortLeAt(this.position);
+    this.readShortLe = async function() {
+        var r = await this.reader.shortLeAt(this.position);
         this.position += 2;
         return r;
     };
 
-    this.readShortBe = function() {
-        var r = this.reader.shortBeAt(this.position);
+    this.readShortBe = async function() {
+        var r = await this.reader.shortBeAt(this.position);
         this.position += 2;
         return r;
     };
 
-    this.readUIntLe = function() {
-        var r = this.reader.uintLeAt(this.position);
+    this.readUIntLe = async function() {
+        var r = await this.reader.uintLeAt(this.position);
         this.position += 4;
         return r;
     };
 
-    this.readUIntBe = function() {
-        var r = this.reader.uintBeAt(this.position);
+    this.readUIntBe = async function() {
+        var r = await this.reader.uintBeAt(this.position);
         this.position += 4;
         return r;
     };
 
-    this.readIntLe = function() {
-        var r = this.reader.intLeAt(this.position);
+    this.readIntLe = async function() {
+        var r = await this.reader.intLeAt(this.position);
         this.position += 4;
         return r;
     };
 
-    this.readIntBe = function() {
-        var r = this.reader.intBeAt(this.position);
+    this.readIntBe = async function() {
+        var r = await this.reader.intBeAt(this.position);
         this.position += 4;
         return r;
     };
 
-    this.readLongLe = function() {
-        var r = this.reader.intLeAt(this.position);
+    this.readLongLe = async function() {
+        var r = await this.reader.intLeAt(this.position);
         this.position += 4;
-        r = (this.reader.intLeAt(this.position) << 32) + r;
-        this.position += 4;
-        return r;
-    };
-
-    this.readLongBe = function() {
-        var r = this.reader.intBeAt(this.position);
-        this.position += 4;
-        r = (r << 32) + this.reader.intBeAt(this.position);
+        r = ((await this.reader.intLeAt(this.position)) << 32) + r;
         this.position += 4;
         return r;
     };
 
-    this.readFloatLe = function() {
-        var r = this.reader.floatLeAt(this.position);
+    this.readLongBe = async function() {
+        var r = await this.reader.intBeAt(this.position);
+        this.position += 4;
+        r = (r << 32) + (await this.reader.intBeAt(this.position));
         this.position += 4;
         return r;
     };
 
-    this.readFloatBe = function() {
-        var r = this.reader.floatBeAt(this.position);
+    this.readFloatLe = async function() {
+        var r = await this.reader.floatLeAt(this.position);
         this.position += 4;
         return r;
     };
 
-    this.readDoubleLe = function() {
-        var r = this.reader.doubleLeAt(this.position);
+    this.readFloatBe = async function() {
+        var r = await this.reader.floatBeAt(this.position);
+        this.position += 4;
+        return r;
+    };
+
+    this.readDoubleLe = async function() {
+        var r = await this.reader.doubleLeAt(this.position);
         this.position += 8;
         return r;
     };
 
-    this.readDoubleBe = function() {
-        var r = this.reader.doubleBeAt(this.position);
+    this.readDoubleBe = async function() {
+        var r = await this.reader.doubleBeAt(this.position);
         this.position += 8;
         return r;
     };
 
-    this.readBytes = function(length) {
+    this.readBytes = async function(length) {
         var bytes = [];
         for (var i = 0; i < length; i++) {
-            bytes.push(this.readByte());
+            bytes.push(await this.readByte());
         }
         return bytes;
     };
 
-    this.readAsciiString = function(length) {
+    this.readAsciiString = async function(length) {
         var result = "";
         for (var i = 0; i < length; i++) {
-            result += String.fromCharCode(this.readByte());
+            result += String.fromCharCode(await this.readByte());
         }
         return result;
     };
 
-    this.readUtf16BeString = function(length, hasHeader) {
+    this.readUtf16BeString = async function(length, hasHeader) {
         var result = "";
         if (length <= 2) {
             return result;
@@ -259,12 +295,12 @@ var DataStream = function(dReader, initialOffset) {
             chars = length / 2;
         }
         for (var i = 0; i < chars; i++) {
-            result += String.fromCharCode(this.readUShortBe());
+            result += String.fromCharCode(await this.readUShortBe());
         }
         return result;
     };
 
-    this.readUtf16LeString = function(length, hasHeader) {
+    this.readUtf16LeString = async function(length, hasHeader) {
         var result = "";
         if (length <= 2) {
             return result;
@@ -277,7 +313,7 @@ var DataStream = function(dReader, initialOffset) {
             chars = length / 2;
         }
         for (var i = 0; i < chars; i++) {
-            result += String.fromCharCode(this.readUShortLe());
+            result += String.fromCharCode(await this.readUShortLe());
         }
         return result;
     }

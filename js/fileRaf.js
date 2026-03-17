@@ -15,26 +15,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("RAF structure");
 
 	try {
         var stream = new DataStream(reader);
 
-        var magicStr = stream.readAsciiString(16);
+        var magicStr = await stream.readAsciiString(16);
         if (magicStr != "FUJIFILMCCD-RAW ") {
             throw "Invalid RAF header.";
         }
 
         stream.skip(0x44);
 
-        var jpgOffset = stream.readUIntBe();
-        var jpgLength = stream.readUIntBe();
+        var jpgOffset = await stream.readUIntBe();
+        var jpgLength = await stream.readUIntBe();
 
-        results.addResult(parseJpgStructure(reader, jpgOffset));
+        results.addResult(await parseJpgStructure(reader, jpgOffset));
 
-        var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, jpgOffset, jpgLength);
+        var thumbString = "data:image/png;base64," + base64FromArrayBuffer(await reader.getSliceAsArrayBuffer(jpgOffset, jpgLength), 0, jpgLength);
         reader.onGetPreviewImage(thumbString);
 
     } catch(e) {

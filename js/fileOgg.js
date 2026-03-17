@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("OGG structure");
 

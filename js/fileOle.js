@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("OLE structure");
 	try {
@@ -25,7 +25,7 @@ function parseFormat(reader)
         var dirList = [];
 
         try {
-            oleReadContents(stream, contentResults, dirList);
+            await oleReadContents(stream, contentResults, dirList);
         } catch (e) {
             console.log("Error while reading OLE contents: " + e);
         }
@@ -99,14 +99,14 @@ function oleDirListItemContains(dirList, testString) {
     return false;
 }
 
-function oleReadContents(stream, results, dirNames) {
+async function oleReadContents(stream, results, dirNames) {
     stream.seek(24, 0);
 
-    var oleMinorVer = stream.readUShortLe();
-    var oleDllVer = stream.readUShortLe();
-    var oleByteOrder = stream.readUShortLe();
-    var oleSectorShift = stream.readUShortLe();
-    var oleMiniSectorShift = stream.readUShortLe();
+    var oleMinorVer = await stream.readUShortLe();
+    var oleDllVer = await stream.readUShortLe();
+    var oleByteOrder = await stream.readUShortLe();
+    var oleSectorShift = await stream.readUShortLe();
+    var oleMiniSectorShift = await stream.readUShortLe();
     var oleSectorSize = (1 << oleSectorShift);
 
     stream.seek(10, 1);
@@ -116,14 +116,14 @@ function oleReadContents(stream, results, dirNames) {
         return;
     }
 
-    var oleNumFatBlocks = stream.readUIntLe();
-    var oleRootStartBlock = stream.readUIntLe();
-    var oleDfSig = stream.readUIntLe();
-    var oleMiniSectorCutoff = stream.readUIntLe();
-    var oleDirFlag = stream.readUIntLe();
-    var oleCSectMiniFat = stream.readUIntLe();
-    var oleFatNextBlock = stream.readUIntLe();
-    var oleNumExtraFatBlocks = stream.readUIntLe();
+    var oleNumFatBlocks = await stream.readUIntLe();
+    var oleRootStartBlock = await stream.readUIntLe();
+    var oleDfSig = await stream.readUIntLe();
+    var oleMiniSectorCutoff = await stream.readUIntLe();
+    var oleDirFlag = await stream.readUIntLe();
+    var oleCSectMiniFat = await stream.readUIntLe();
+    var oleFatNextBlock = await stream.readUIntLe();
+    var oleNumExtraFatBlocks = await stream.readUIntLe();
 
     if (oleNumFatBlocks > 100000) {
         console.log("Warning: bad oleNumFatBlocks");
@@ -141,7 +141,7 @@ function oleReadContents(stream, results, dirNames) {
         numFatEntries = 109;
     }
     else {
-        fatOffset = (stream.readUIntLe() << oleSectorShift) + oleSectorSize;
+        fatOffset = (await stream.readUIntLe() << oleSectorShift) + oleSectorSize;
         numFatEntries = ((oleNumFatBlocks << oleSectorShift) / 4);
     }
 
@@ -163,8 +163,8 @@ function oleReadContents(stream, results, dirNames) {
         for (sid = 0; sid < oleSectorSize / 128; sid++) {
             stream.seek(offsetRootDir, 0);
 
-            var dirName = stream.readUtf16LeString(64);
-            var nameSize = stream.readUShortLe();
+            var dirName = await stream.readUtf16LeString(64);
+            var nameSize = await stream.readUShortLe();
             nameSize = (nameSize / 2 - 1);
             if (nameSize > 2048) {
                 badStuff = true;
@@ -173,14 +173,14 @@ function oleReadContents(stream, results, dirNames) {
             if (nameSize < 32) {
                 dirName = dirName.substring(0, nameSize);
 
-                var dirType = stream.readByte();
+                var dirType = await stream.readByte();
                 if (dirType == 0) {
                     break;
                 }
-                var dirFlags = stream.readByte();
-                var prevDirent = stream.readUIntLe();
-                var nextDirent = stream.readUIntLe();
-                var sidChild = stream.readUIntLe();
+                var dirFlags = await stream.readByte();
+                var prevDirent = await stream.readUIntLe();
+                var nextDirent = await stream.readUIntLe();
+                var sidChild = await stream.readUIntLe();
                 // clsid (16 bytes)
                 //ehh... don't care about the rest
 
@@ -198,7 +198,7 @@ function oleReadContents(stream, results, dirNames) {
         {
             blockOffset = (block * 4 + fatOffset);
             stream.seek(blockOffset, 0);
-            block = stream.readUIntLe();
+            block = await stream.readUIntLe();
         }
     }
 }

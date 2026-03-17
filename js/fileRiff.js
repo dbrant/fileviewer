@@ -15,43 +15,43 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("RIFF structure");
 	try {
 		var stream = new DataStream(reader);
 
-        var tempStr = stream.readAsciiString(4);
+        var tempStr = await stream.readAsciiString(4);
         if (tempStr != "RIFF") {
             throw "This is not a valid RIFF file.";
         }
 
         var bigEndian = false;
-        var totalSizeLe = reader.uintLeAt(4) + 8;
-        var totalSizeBe = reader.uintBeAt(4) + 8;
+        var totalSizeLe = await reader.uintLeAt(4) + 8;
+        var totalSizeBe = await reader.uintBeAt(4) + 8;
 
         if (totalSizeBe > (reader.length() - 16) && totalSizeBe < (reader.length() + 16)) {
             bigEndian = true;
         }
 
         stream.seek(4, 1);
-        var riffType = stream.readAsciiString(4);
+        var riffType = await stream.readAsciiString(4);
 
         var node = results.add("RIFF type", riffType);
 
         while (!stream.eof()) {
-            var blockName = stream.readAsciiString(4);
-            var blockSize = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
+            var blockName = await stream.readAsciiString(4);
+            var blockSize = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
 
             var subnode = node.add(blockName, blockSize.toString() + " bytes");
 
             if (blockName == "fmt " && (riffType == "WAVE" || riffType == "RMP3")) {
-                subnode.add("Audio format", stream.readUShortLe());
-                subnode.add("Number of channels", stream.readUShortLe());
-                subnode.add("Sample rate", stream.readUIntLe());
-                subnode.add("Byte rate", stream.readUIntLe());
-                subnode.add("Block align", stream.readUShortLe());
-                subnode.add("Bits per sample", stream.readUShortLe());
+                subnode.add("Audio format", await stream.readUShortLe());
+                subnode.add("Number of channels", await stream.readUShortLe());
+                subnode.add("Sample rate", await stream.readUIntLe());
+                subnode.add("Byte rate", await stream.readUIntLe());
+                subnode.add("Block align", await stream.readUShortLe());
+                subnode.add("Bits per sample", await stream.readUShortLe());
                 blockSize -= 16;
             }
 

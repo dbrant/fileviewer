@@ -15,22 +15,22 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("GIF structure");
 	try {
 		var stream = new DataStream(reader);
         var blockSize, colorTableSize, colorTableBytes;
 
-        var gifMagic = stream.readAsciiString(6);
+        var gifMagic = await stream.readAsciiString(6);
         if (gifMagic.indexOf("GIF") < 0) {
             return;
         }
         results.add("GIF Version", gifMagic);
 
-        var gifWidth = stream.readShortLe();
-        var gifHeight = stream.readShortLe();
-        var gifFlags = stream.readByte();
+        var gifWidth = await stream.readShortLe();
+        var gifHeight = await stream.readShortLe();
+        var gifFlags = await stream.readByte();
         stream.skip(2);
 
         if ((gifFlags & 0x80) != 0) {
@@ -42,41 +42,41 @@ function parseFormat(reader)
         }
 
         while (!stream.eof()) {
-            var typeByte = stream.readByte();
+            var typeByte = await stream.readByte();
             var node = results.add("Block 0x" + typeByte.toString(16).toUpperCase());
 
             if (typeByte == 0x21) {
                 //extension...
-                var extType = stream.readByte();
+                var extType = await stream.readByte();
                 var subnode = node.add("Extension 0x" + extType.toString(16).toUpperCase());
 
                 if (extType == 0xF9) {
-                    blockSize = stream.readByte();
+                    blockSize = await stream.readByte();
                     stream.skip(blockSize);
-                    gifReadSubBlocks(stream);
+                    await gifReadSubBlocks(stream);
 
                 } else if (extType == 0xFE) {
-                    subnode.add("Comment", gifReadSubBlocks(stream, true));
+                    subnode.add("Comment", await gifReadSubBlocks(stream, true));
 
                 } else if (extType == 0x1) {
-                    blockSize = stream.readByte();
+                    blockSize = await stream.readByte();
                     stream.skip(blockSize);
-                    subnode.add("Text data", gifReadSubBlocks(stream, true));
+                    subnode.add("Text data", await gifReadSubBlocks(stream, true));
 
                 } else if (extType == 0xFF) {
-                    blockSize = stream.readByte();
+                    blockSize = await stream.readByte();
                     var appIdStrLen = blockSize;
                     var appIdStr = "";
                     if (appIdStrLen > 8) {
-                        appIdStr = stream.readAsciiString(8);
+                        appIdStr = await stream.readAsciiString(8);
                         stream.skip(appIdStrLen - 8);
                     } else {
-                        appIdStr = stream.readAsciiString(appIdStrLen);
+                        appIdStr = await stream.readAsciiString(appIdStrLen);
                     }
                     if (appIdStr.length > 0) {
                         subnode.add("Application ID", appIdStr);
                     }
-                    subnode.add("Application data", gifReadSubBlocks(stream, true));
+                    subnode.add("Application data", await gifReadSubBlocks(stream, true));
 
                 } else {
                     break;
@@ -85,9 +85,9 @@ function parseFormat(reader)
             } else if (typeByte == 0x2C) {
                 //image data...
                 stream.skip(4);
-                var imgWidth = stream.readShortLe();
-                var imgHeight = stream.readShortLe();
-                var imgFlags = stream.readByte();
+                var imgWidth = await stream.readShortLe();
+                var imgHeight = await stream.readShortLe();
+                var imgFlags = await stream.readByte();
                 node.add("Width", imgWidth);
                 node.add("Height", imgHeight);
 
@@ -98,8 +98,8 @@ function parseFormat(reader)
                     node.add("Color table", colorTableBytes.toString() + " bytes");
                     stream.skip(colorTableBytes);
                 }
-                var minLzwSize = stream.readByte();
-                gifReadSubBlocks(stream);
+                var minLzwSize = await stream.readByte();
+                await gifReadSubBlocks(stream);
 
             } else if (typeByte == 0x3B) {
                 //done!
@@ -116,17 +116,17 @@ function parseFormat(reader)
 	return results;
 }
 
-function gifReadSubBlocks(stream, wantString) {
+async function gifReadSubBlocks(stream, wantString) {
     var blockLen = 0;
     var retStr = "";
     do {
-        blockLen = stream.readByte();
+        blockLen = await stream.readByte();
         if (blockLen > 0) {
             if (blockLen < 1024 && wantString) {
                 if (retStr.length > 0) {
                     retStr += ", ";
                 }
-                retStr += stream.readAsciiString(blockLen);
+                retStr += await stream.readAsciiString(blockLen);
             } else {
                 stream.skip(blockLen);
             }

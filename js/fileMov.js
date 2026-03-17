@@ -15,29 +15,29 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("MOV structure");
 	try {
 		var stream = new DataStream(reader);
-        movProcessChunks(stream, stream.length(), "", results);
+        await movProcessChunks(stream, stream.length(), "", results);
 	} catch(e) {
 		console.log("Error while reading MOV: " + e);
 	}
 	return results;
 }
 
-function movProcessChunks(stream, maxLen, parentChunk, results) {
+async function movProcessChunks(stream, maxLen, parentChunk, results) {
     var chunkType;
     var chunkLength;
     var maxPosition = stream.position + maxLen;
 
     while (stream.position < maxPosition) {
-        chunkLength = stream.readUIntBe();
-        chunkType = stream.readAsciiString(4);
+        chunkLength = await stream.readUIntBe();
+        chunkType = await stream.readAsciiString(4);
 
         if (chunkLength == 1) {
-            chunkLength = stream.readLongBe() - 16;
+            chunkLength = await stream.readLongBe() - 16;
         } else {
             chunkLength -= 8;
         }
@@ -53,13 +53,13 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
 
                 var covrPosition = stream.position + 8;
 
-                if (stream.reader.byteAt(covrPosition) == 0x89 && stream.reader.byteAt(covrPosition + 1) == 0x50) {
-                    node.addResult(parsePngStructure(stream.reader, covrPosition));
-                } else if (stream.reader.byteAt(covrPosition) == 0xFF && stream.reader.byteAt(covrPosition + 1) == 0xD8) {
-                    node.addResult(parseJpgStructure(stream.reader, covrPosition));
+                if (await stream.reader.byteAt(covrPosition) == 0x89 && await stream.reader.byteAt(covrPosition + 1) == 0x50) {
+                    node.addResult(await parsePngStructure(stream.reader, covrPosition));
+                } else if (await stream.reader.byteAt(covrPosition) == 0xFF && await stream.reader.byteAt(covrPosition + 1) == 0xD8) {
+                    node.addResult(await parseJpgStructure(stream.reader, covrPosition));
                 }
 
-                var thumbString = "data:image/png;base64," + base64FromArrayBuffer(stream.reader.dataView.buffer, covrPosition, chunkLength - 16);
+                var thumbString = "data:image/png;base64," + base64FromArrayBuffer(await stream.reader.getSliceAsArrayBuffer(covrPosition, chunkLength - 16), 0, chunkLength - 16);
                 var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
                 node.add("Image", thumbHtml);
                 stream.reader.onGetPreviewImage(thumbString);
@@ -67,7 +67,7 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
             } else if (movAsciiableChunks.indexOf(parentChunk) >= 0) {
                 var numAsciiBytes = chunkLength - 8;
                 if (numAsciiBytes > 0 && numAsciiBytes < 1024) {
-                    var asciiStr = stream.reader.getAsciiStringAt(stream.position + 8, numAsciiBytes);
+                    var asciiStr = await stream.reader.getAsciiStringAt(stream.position + 8, numAsciiBytes);
                     if (movWikiableChunks.indexOf(parentChunk) >= 0) {
                         asciiStr = wikiLinkifyString(asciiStr);
                     }
@@ -77,14 +77,14 @@ function movProcessChunks(stream, maxLen, parentChunk, results) {
         }
 
         if (movSubChunkableChunks.indexOf(chunkType) >= 0) {
-            movProcessChunks(stream, chunkLength, chunkType, node);
+            await movProcessChunks(stream, chunkLength, chunkType, node);
         } else if (chunkType == "meta") {
 
             // TODO: verify some things to make sure the meta format is correct?
 
             stream.skip(4);
             chunkLength -= 8;
-            movProcessChunks(stream, chunkLength, chunkType, node);
+            await movProcessChunks(stream, chunkLength, chunkType, node);
         } else {
             if (chunkLength > 0) {
                 stream.skip(chunkLength);

@@ -104,72 +104,69 @@
                     });
         }
 
-        function processFile(file) {
+        async function processFile(file) {
             setStatus("");
             if(file == null){
                 setStatus("Whatever was dropped is not a file.");
                 return;
             }
-            var reader = new FileReader();
-            reader.onload = function (event) {
-                var buf = event.target.result;
-                var dataView = new DataView(buf);
-                var reader = new DataReader(dataView);
 
-                $("#drophint").hide();
-                $("#previewCanvas").show();
-                clearCanvas();
+            var reader = new DataReader(file);
 
-                reader.onGetPreviewImage = function(imageSrc) {
-                    if ( !format.canPreviewNatively) {
-                        drawImageOnCanvas(imageSrc);
-                    }
-                };
-                reader.onGetPreviewBitmap = function(imageData) {
-                    resizeCanvas(imageData.width, imageData.height);
-                    var context = $("#previewCanvas")[0].getContext('2d');
-                    context.putImageData(imageData, 0, 0);
-                };
-                reader.getCanvasContext = function() {
-                    return $("#previewCanvas")[0].getContext('2d');
-                };
+            $("#drophint").hide();
+            $("#previewCanvas").show();
+            clearCanvas();
 
-                var format = detectFileFormat(reader);
-                if (format == null) {
-                    format = detectFileFormatByExt(file.name);
-                }
-                if (format == null) {
-                    format = UnknownFileFormat;
-                }
+            var format;
 
-                layoutFileInfo(file, format);
-
-                parseFormat = undefined;
-                if (!format.parseFunc) {
-                    if (format.detectScripts) {
-                        downloadScripts(format.detectScripts, function () {
-                            format.parseFunc = parseFormat;
-                            layoutParseResults(format.parseFunc(reader));
-                        });
-                    } else {
-                        layoutParseResults(new ResultNode());
-                    }
-                } else {
-                    console.log("using cached script...");
-                    layoutParseResults(format.parseFunc(reader));
-                }
-
-                if (format.canPreviewNatively) {
-                    console.log("previewing natively...");
-                    var urlReader = new FileReader();
-                    urlReader.onload = function (event) {
-                        console.log("drawing image...");
-                        drawImageOnCanvas(event.target.result);
-                    };
-                    urlReader.readAsDataURL(file);
+            reader.onGetPreviewImage = function(imageSrc) {
+                if ( !format.canPreviewNatively) {
+                    drawImageOnCanvas(imageSrc);
                 }
             };
-            reader.readAsArrayBuffer(file);
+            reader.onGetPreviewBitmap = function(imageData) {
+                resizeCanvas(imageData.width, imageData.height);
+                var context = $("#previewCanvas")[0].getContext('2d');
+                context.putImageData(imageData, 0, 0);
+            };
+            reader.getCanvasContext = function() {
+                return $("#previewCanvas")[0].getContext('2d');
+            };
+
+            format = await detectFileFormat(reader);
+            if (format == null) {
+                format = detectFileFormatByExt(file.name);
+            }
+            if (format == null) {
+                format = UnknownFileFormat;
+            }
+
+            layoutFileInfo(file, format);
+
+            parseFormat = undefined;
+            if (!format.parseFunc) {
+                if (format.detectScripts) {
+                    downloadScripts(format.detectScripts, async function () {
+                        format.parseFunc = parseFormat;
+                        layoutParseResults(await format.parseFunc(reader));
+                    });
+                } else {
+                    layoutParseResults(new ResultNode());
+                }
+            } else {
+                console.log("using cached script...");
+                layoutParseResults(await format.parseFunc(reader));
+            }
+
+            if (format.canPreviewNatively) {
+                console.log("previewing natively...");
+                var urlReader = new FileReader();
+                urlReader.onload = function (event) {
+                    console.log("drawing image...");
+                    drawImageOnCanvas(event.target.result);
+                };
+                urlReader.readAsDataURL(file);
+            }
         }
 
         function setStatus(status) {

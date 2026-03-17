@@ -19,13 +19,13 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("BPG structure");
 	try {
 
         var img = new BPGDecoder(reader.getCanvasContext());
-        img.load(reader.dataView.buffer);
+        img.load(await reader.getSliceAsArrayBuffer(0, reader.length()));
         if (img.imageData !== undefined) {
             console.log("Got bitmap from BPG decoder...");
 
@@ -39,4 +39,3 @@ function parseFormat(reader)
 	}
 	return results;
 }
-

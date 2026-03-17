@@ -15,18 +15,18 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("BMP structure");
 	try {
 		var stream = new DataStream(reader);
-        if (stream.readAsciiString(2) != "BM") {
+        if (await stream.readAsciiString(2) != "BM") {
             throw "This is not a valid BMP file.";
         }
 
         stream.skip(16);
-        var imgWidth = stream.readUIntLe();
-        var imgHeight = stream.readUIntLe();
+        var imgWidth = await stream.readUIntLe();
+        var imgHeight = await stream.readUIntLe();
 
         results.add("Width", imgWidth);
         results.add("Height", imgHeight);

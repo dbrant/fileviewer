@@ -15,27 +15,27 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("ID3 structure");
 	try {
 		var stream = new DataStream(reader);
-        var frames = id3v2ReadContainer(stream);
+        var frames = await id3v2ReadContainer(stream);
 
-        results.add("ID3 version", reader.byteAt(3));
+        results.add("ID3 version", await reader.byteAt(3));
 
         for (var i = 0; i < frames.length; i++) {
             var node = results.add(frames[i].frameID, frames[i].frameString);
 
             if (frames[i].frameID == "APIC" || frames[i].frameID == "PIC") {
 
-                if (reader.byteAt(frames[i].apicAbsoluteLocation) == 0x89 && reader.byteAt(frames[i].apicAbsoluteLocation + 1) == 0x50) {
-                    node.addResult(parsePngStructure(reader, frames[i].apicAbsoluteLocation));
-                } else if (reader.byteAt(frames[i].apicAbsoluteLocation) == 0xFF && reader.byteAt(frames[i].apicAbsoluteLocation + 1) == 0xD8) {
-                    node.addResult(parseJpgStructure(reader, frames[i].apicAbsoluteLocation));
+                if (await reader.byteAt(frames[i].apicAbsoluteLocation) == 0x89 && await reader.byteAt(frames[i].apicAbsoluteLocation + 1) == 0x50) {
+                    node.addResult(await parsePngStructure(reader, frames[i].apicAbsoluteLocation));
+                } else if (await reader.byteAt(frames[i].apicAbsoluteLocation) == 0xFF && await reader.byteAt(frames[i].apicAbsoluteLocation + 1) == 0xD8) {
+                    node.addResult(await parseJpgStructure(reader, frames[i].apicAbsoluteLocation));
                 }
 
-                var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, frames[i].apicAbsoluteLocation, frames[i].apicSize);
+                var thumbString = "data:image/png;base64," + base64FromArrayBuffer(await reader.getSliceAsArrayBuffer(frames[i].apicAbsoluteLocation, frames[i].apicSize), 0, frames[i].apicSize);
                 var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
                 node.add("Image", thumbHtml);
                 stream.reader.onGetPreviewImage(thumbString);
@@ -48,30 +48,30 @@ function parseFormat(reader)
 	return results;
 }
 
-function mp3ReadSyncSafeInt(stream, length) {
+async function mp3ReadSyncSafeInt(stream, length) {
     var sum = 0;
     for (var i = 0; i < length; i++) {
         sum <<= 7;
-        sum |= (stream.readByte() & 0x7F);
+        sum |= (await stream.readByte() & 0x7F);
     }
     return sum;
 }
 
-function id3ReadString(stream, length) {
+async function id3ReadString(stream, length) {
     var retStr = "";
-    var strType = stream.readByte();
+    var strType = await stream.readByte();
     if (strType == 0) {
-        retStr = stream.readAsciiString(length - 1); // ISO-8859-1
+        retStr = await stream.readAsciiString(length - 1); // ISO-8859-1
     } else if (strType == 1) {
-        retStr = stream.readUtf16LeString(length - 1, true);
+        retStr = await stream.readUtf16LeString(length - 1, true);
     } else if (strType == 2) {
-        retStr = stream.readUtf16BeString(length - 1, true); // UTF-16BE
+        retStr = await stream.readUtf16BeString(length - 1, true); // UTF-16BE
     } else if (strType == 3) {
-        retStr = stream.readAsciiString(length - 1); // UTF-8
+        retStr = await stream.readAsciiString(length - 1); // UTF-8
     } else {
         // Just read the string without a type. Seems to be the case for POPM
         stream.seek(-1, 1);
-        retStr = stream.readAsciiString(length);
+        retStr = await stream.readAsciiString(length);
     }
     retStr = retStr.replace("\0", "");
     return retStr;
@@ -83,19 +83,19 @@ var id3WikiableTags = [ "TALB", "TPE1", "TPE2", "TP1", "TP2", "TAL" ];
 var id3HeaderSize = 10;
 var id3FrameHeaderSize = 10;
 
-function id3v2ReadContainer(stream) {
+async function id3v2ReadContainer(stream) {
     var frames = [];
-    if (stream.readAsciiString(3) != "ID3") {
+    if (await stream.readAsciiString(3) != "ID3") {
         return frames;
     }
-    var id3Version = stream.readByte();
-    var id3Revision = stream.readByte();
-    var id3Flags = stream.readByte();
-    var id3Size = mp3ReadSyncSafeInt(stream, 4);
+    var id3Version = await stream.readByte();
+    var id3Revision = await stream.readByte();
+    var id3Flags = await stream.readByte();
+    var id3Size = await mp3ReadSyncSafeInt(stream, 4);
 
     //do we have an extended header?
     if ((id3Flags & 0x40) != 0) {
-        var extHeaderSize = id3Version >= 4 ? mp3ReadSyncSafeInt(stream, 4) : stream.readUIntBe();
+        var extHeaderSize = id3Version >= 4 ? await mp3ReadSyncSafeInt(stream, 4) : await stream.readUIntBe();
         if (extHeaderSize < 0 || extHeaderSize > 10000000) {
             return frames;
         }
@@ -105,7 +105,7 @@ function id3v2ReadContainer(stream) {
     //cycle through frames...
     var currentLength = 0;
     while (currentLength < id3Size) {
-        var frame = new id3v2Frame(stream, id3Version);
+        var frame = await createId3v2Frame(stream, id3Version);
 
         if (frame.frameSize == 0) {
             //padding has begun
@@ -118,80 +118,79 @@ function id3v2ReadContainer(stream) {
     return frames;
 }
 
-var id3v2Frame = function(stream, id3Version) {
-    this.stream = stream;
-    this.frameAbsoluteLocation = stream.position;
+async function createId3v2Frame(stream, id3Version) {
+    var frame = {};
+    frame.stream = stream;
+    frame.frameAbsoluteLocation = stream.position;
 
-    this.apicMimeType = "";
-    this.apicDescription = "";
-    this.apicAbsoluteLocation = 0;
-    this.apicSize = 0;
+    frame.apicMimeType = "";
+    frame.apicDescription = "";
+    frame.apicAbsoluteLocation = 0;
+    frame.apicSize = 0;
 
-    this.frameID = stream.readAsciiString(id3Version < 3 ? 3 : 4);
-    this.frameSize = id3Version >= 4 ? mp3ReadSyncSafeInt(stream, 4) : (id3Version == 3 ? stream.readUIntBe() : id3v2read3byteIntBe(stream));
+    frame.frameID = await stream.readAsciiString(id3Version < 3 ? 3 : 4);
+    frame.frameSize = id3Version >= 4 ? await mp3ReadSyncSafeInt(stream, 4) : (id3Version == 3 ? await stream.readUIntBe() : await id3v2read3byteIntBe(stream));
     if (id3Version > 2) {
-        this.frameFlags = stream.readUShortBe();
+        frame.frameFlags = await stream.readUShortBe();
     }
-    this.frameString = "";
+    frame.frameString = "";
 
-    this.processAPIC = function (stream) {
+    if (frame.frameID == "APIC" || frame.frameID == "PIC") {
         var initialPos = stream.position;
 
-        var textEncoding = stream.readByte();
+        var textEncoding = await stream.readByte();
         if (id3Version > 2) {
             stream.skip(3);
         }
 
         var textEnd = 0;
         var textByte;
-        this.apicMimeType = "";
+        frame.apicMimeType = "";
         while (textEnd < 10000) {
-            textByte = stream.readByte();
+            textByte = await stream.readByte();
             if (textByte == 0) {
                 break;
             }
-            this.apicMimeType += String.fromCharCode(textByte);
+            frame.apicMimeType += String.fromCharCode(textByte);
             textEnd++;
         }
 
         if (id3Version > 2) {
-            var pictureType = stream.readByte();
+            var pictureType = await stream.readByte();
         }
         textEnd = 0;
-        this.apicDescription = "";
+        frame.apicDescription = "";
         while (textEnd < 10000) {
-            textByte = stream.readByte();
+            textByte = await stream.readByte();
             if (textByte == 0) {
                 break;
             }
-            this.apicDescription += String.fromCharCode(textByte);
+            frame.apicDescription += String.fromCharCode(textByte);
             textEnd++;
         }
 
-        this.apicAbsoluteLocation = stream.position;
-        this.apicSize = this.frameSize - (this.apicAbsoluteLocation - initialPos);
-        stream.seek(this.apicSize, 1);
-    };
-
-    if (this.frameID == "APIC" || this.frameID == "PIC") {
-        this.processAPIC(stream);
+        frame.apicAbsoluteLocation = stream.position;
+        frame.apicSize = frame.frameSize - (frame.apicAbsoluteLocation - initialPos);
+        stream.seek(frame.apicSize, 1);
     } else {
-        if (id3AsciiWorthyTags.indexOf(this.frameID) >= 0 && this.frameSize < 4096) {
-            this.frameString = id3ReadString(stream, this.frameSize);
-            if (id3WikiableTags.indexOf(this.frameID) >= 0) {
-                this.frameString = wikiLinkifyString(this.frameString);
+        if (id3AsciiWorthyTags.indexOf(frame.frameID) >= 0 && frame.frameSize < 4096) {
+            frame.frameString = await id3ReadString(stream, frame.frameSize);
+            if (id3WikiableTags.indexOf(frame.frameID) >= 0) {
+                frame.frameString = wikiLinkifyString(frame.frameString);
             }
         } else {
-            stream.skip(this.frameSize);
+            stream.skip(frame.frameSize);
         }
     }
-};
 
-function id3v2read3byteIntBe(stream) {
-    var ret = stream.readByte();
+    return frame;
+}
+
+async function id3v2read3byteIntBe(stream) {
+    var ret = await stream.readByte();
     ret <<= 8;
-    ret |= stream.readByte();
+    ret |= await stream.readByte();
     ret <<= 8;
-    ret |= stream.readByte();
+    ret |= await stream.readByte();
     return ret;
 }

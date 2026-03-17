@@ -43,7 +43,7 @@ var MakerNoteNikon2 = 3;
 var MakerNoteNikon3 = 4;
 
 
-function getEntryContents32(entry, stream, bigEndian) {
+async function getEntryContents32(entry, stream, bigEndian) {
     var ret = [], i;
     if (entry.numValues > 10000) {
         return ret;
@@ -76,22 +76,22 @@ function getEntryContents32(entry, stream, bigEndian) {
         {
             if (tiffTypeSize[entry.fieldType] == 1)
             {
-                ret.push(stream.readByte());
+                ret.push(await stream.readByte());
             }
             else if (tiffTypeSize[entry.fieldType] == 2)
             {
-                ret.push(bigEndian ? stream.readUShortBe() : stream.readUShortLe());
+                ret.push(bigEndian ? await stream.readUShortBe() : await stream.readUShortLe());
             }
             else if (tiffTypeSize[entry.fieldType] == 4)
             {
-                ret.push(bigEndian ? stream.readUIntBe() : stream.readUIntLe());
+                ret.push(bigEndian ? await stream.readUIntBe() : await stream.readUIntLe());
             }
         }
     }
     return ret;
 }
 
-function getEntryContents32Signed(entry, stream, bigEndian) {
+async function getEntryContents32Signed(entry, stream, bigEndian) {
     var ret = [], i;
     if (entry.numValues > 10000) {
         return ret;
@@ -123,23 +123,23 @@ function getEntryContents32Signed(entry, stream, bigEndian) {
         {
             if (tiffTypeSize[entry.fieldType] == 1)
             {
-                var b = stream.readByte();
+                var b = await stream.readByte();
                 ret.push(b < 128 ? b : b - 256);
             }
             else if (tiffTypeSize[entry.fieldType] == 2)
             {
-                ret.push(bigEndian ? stream.readShortBe() : stream.readShortLe());
+                ret.push(bigEndian ? await stream.readShortBe() : await stream.readShortLe());
             }
             else if (tiffTypeSize[entry.fieldType] == 4)
             {
-                ret.push(bigEndian ? stream.readIntBe() : stream.readIntLe());
+                ret.push(bigEndian ? await stream.readIntBe() : await stream.readIntLe());
             }
         }
     }
     return ret;
 }
 
-function getEntryContentsRational(entry, stream, bigEndian) {
+async function getEntryContentsRational(entry, stream, bigEndian) {
     var ret = [];
     if (entry.numValues > 1024) {
         return ret;
@@ -147,8 +147,8 @@ function getEntryContentsRational(entry, stream, bigEndian) {
     stream.seek(entry.valueOffset, 0);
     for (var i = 0; i < entry.numValues; i++)
     {
-        var numerator = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
-        var denominator = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
+        var numerator = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
+        var denominator = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
         if (denominator == 0) {
             denominator = 1;
         }
@@ -157,7 +157,7 @@ function getEntryContentsRational(entry, stream, bigEndian) {
     return ret;
 }
 
-function getEntryContentsRationalSigned(entry, stream, bigEndian) {
+async function getEntryContentsRationalSigned(entry, stream, bigEndian) {
     var ret = [];
     if (entry.numValues > 1024) {
         return ret;
@@ -165,8 +165,8 @@ function getEntryContentsRationalSigned(entry, stream, bigEndian) {
     stream.seek(entry.valueOffset, 0);
     for (var i = 0; i < entry.numValues; i++)
     {
-        var numerator = bigEndian ? stream.readIntBe() : stream.readIntLe();
-        var denominator = bigEndian ? stream.readIntBe() : stream.readIntLe();
+        var numerator = bigEndian ? await stream.readIntBe() : await stream.readIntLe();
+        var denominator = bigEndian ? await stream.readIntBe() : await stream.readIntLe();
         if (denominator == 0) {
             denominator = 1;
         }
@@ -175,7 +175,7 @@ function getEntryContentsRationalSigned(entry, stream, bigEndian) {
     return ret;
 }
 
-function getEntryContentsFloat(entry, stream, bigEndian) {
+async function getEntryContentsFloat(entry, stream, bigEndian) {
     var ret = [];
     if (entry.numValues > 1024) {
         return ret;
@@ -187,26 +187,26 @@ function getEntryContentsFloat(entry, stream, bigEndian) {
     } else {
         stream.seek(entry.valueOffset, 0);
         for (var i = 0; i < entry.numValues; i++) {
-            ret.push(bigEndian ? stream.readFloatBe() : stream.readFloatLe());
+            ret.push(bigEndian ? await stream.readFloatBe() : await stream.readFloatLe());
         }
     }
     return ret;
 }
 
-function getEntryContentsDouble(entry, stream, bigEndian) {
+async function getEntryContentsDouble(entry, stream, bigEndian) {
     var ret = [];
     if (entry.numValues > 1024) {
         return ret;
     }
     stream.seek(entry.valueOffset, 0);
     for (var i = 0; i < entry.numValues; i++) {
-        ret.push(bigEndian ? stream.readDoubleBe() : stream.readDoubleLe());
+        ret.push(bigEndian ? await stream.readDoubleBe() : await stream.readDoubleLe());
     }
     return ret;
 }
 
 
-function getEntryContentsAscii(entry, stream, bigEndian) {
+async function getEntryContentsAscii(entry, stream, bigEndian) {
     var ret = "";
     if ((entry.numValues == 0) || (entry.numValues > 4096)) {
         return ret;
@@ -223,13 +223,13 @@ function getEntryContentsAscii(entry, stream, bigEndian) {
     else
     {
         stream.seek(entry.valueOffset, 0);
-        ret = stream.readAsciiString(entry.numValues - 1);
+        ret = await stream.readAsciiString(entry.numValues - 1);
     }
     return ret;
 }
 
 
-function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, makerNoteType, tagList, level) {
+async function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, makerNoteType, tagList, level) {
     if (level > 8) {
         return 0;
     }
@@ -237,16 +237,16 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
 
     stream.seek(ifdOffset, 0);
 
-    var numDirEntries = bigEndian ? stream.readUShortBe() : stream.readUShortLe();
+    var numDirEntries = bigEndian ? await stream.readUShortBe() : await stream.readUShortLe();
     var entryList = [];
 
     for (i = 0; i < numDirEntries; i++) {
         var entry = new tiffDirEntry();
         entryList.push(entry);
-        entry.dirTag = bigEndian ? stream.readUShortBe() : stream.readUShortLe();
-        entry.fieldType = bigEndian ? stream.readUShortBe() : stream.readUShortLe();
-        entry.numValues = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
-        entry.valueOffset = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
+        entry.dirTag = bigEndian ? await stream.readUShortBe() : await stream.readUShortLe();
+        entry.fieldType = bigEndian ? await stream.readUShortBe() : await stream.readUShortLe();
+        entry.numValues = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
+        entry.valueOffset = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
 
         //can it fit into four bytes?
         if (((tiffTypeSize[entry.fieldType] == 1) && entry.numValues <= 4) ||
@@ -261,7 +261,7 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
         }
     }
 
-    var nextIfdOffset = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
+    var nextIfdOffset = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
 
     for (i = 0; i < entryList.length; i++) {
         entry = entryList[i];
@@ -293,13 +293,13 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
             tagList.push(exifTag);
 
             //sub-ifd / GPS-ifd / Interop-ifd / EXIF-ifd
-            var subIfdList = getEntryContents32(entry, stream, bigEndian);
+            var subIfdList = await getEntryContents32(entry, stream, bigEndian);
             for (var subIfdIndex = 0; subIfdIndex < subIfdList.length; subIfdIndex++)
             {
                 var tempIfd = subIfdList[subIfdIndex];
                 for (var j = 0; j < 32; j++)
                 {
-                    tempIfd = parseTiffDir(stream, bigEndian, tempIfd, entry.dirTag, 0, 0, exifTag.subTags, level + 1);
+                    tempIfd = await parseTiffDir(stream, bigEndian, tempIfd, entry.dirTag, 0, 0, exifTag.subTags, level + 1);
                     if (tempIfd == 0) {
                         break;
                     }
@@ -319,16 +319,16 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
             if (entry.numValues > 16) {
                 stream.seek(entry.valueOffset, 0);
 
-                var makerStr = stream.readAsciiString(4);
+                var makerStr = await stream.readAsciiString(4);
                 if (makerStr == "FUJI") {
                     stream.skip(4);
-                    var fujiIfdOffset = stream.readUIntLe();
-                    parseTiffDir(stream, bigEndian, entry.valueOffset + fujiIfdOffset, entry.dirTag, entry.valueOffset, MakerNoteFujiFilm, exifTag.subTags, level + 1);
+                    var fujiIfdOffset = await stream.readUIntLe();
+                    await parseTiffDir(stream, bigEndian, entry.valueOffset + fujiIfdOffset, entry.dirTag, entry.valueOffset, MakerNoteFujiFilm, exifTag.subTags, level + 1);
                 }
                 else if (makerStr == "Niko") {
                     stream.skip(1);
-                    var b1 = stream.readByte();
-                    var b2 = stream.readByte();
+                    var b1 = await stream.readByte();
+                    var b2 = await stream.readByte();
                     if (b1 == 0 && b2 == 1) {
                         // Nikon type-1 data
                         // (don't have a sample to test yet)
@@ -336,12 +336,12 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
                     else if (b1 == 0 && b2 == 2) {
                         //Nikon type-3 data (not a typo)
                         stream.skip(3);
-                        makerStr = stream.readAsciiString(2);
+                        makerStr = await stream.readAsciiString(2);
                         var nikonEndian = makerStr == "MM";
                         stream.skip(2);
-                        var nikonIfdOffset = nikonEndian ? stream.readUIntBe() : stream.readUIntLe();
+                        var nikonIfdOffset = nikonEndian ? await stream.readUIntBe() : await stream.readUIntLe();
                         //(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, makerNoteType, tagList, level)
-                        parseTiffDir(stream, nikonEndian, entry.valueOffset + 10 + nikonIfdOffset, entry.dirTag, entry.valueOffset + 2 + nikonIfdOffset, MakerNoteNikon3, exifTag.subTags, level + 1);
+                        await parseTiffDir(stream, nikonEndian, entry.valueOffset + 10 + nikonIfdOffset, entry.dirTag, entry.valueOffset + 2 + nikonIfdOffset, MakerNoteNikon3, exifTag.subTags, level + 1);
                     }
                 }
             }
@@ -351,31 +351,31 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
             var valueList = [];
 
             if (entry.fieldType == 2) {
-                valueList.push(getEntryContentsAscii(entry, stream, bigEndian));
+                valueList.push(await getEntryContentsAscii(entry, stream, bigEndian));
             }
             else if (entry.fieldType == 5)
             {
-                valueList = getEntryContentsRational(entry, stream, bigEndian);
+                valueList = await getEntryContentsRational(entry, stream, bigEndian);
             }
             else if (entry.fieldType == 10)
             {
-                valueList = getEntryContentsRationalSigned(entry, stream, bigEndian);
+                valueList = await getEntryContentsRationalSigned(entry, stream, bigEndian);
             }
             else if ((entry.fieldType == 1) || (entry.fieldType == 3) || (entry.fieldType == 4))
             {
-                valueList = getEntryContents32(entry, stream, bigEndian);
+                valueList = await getEntryContents32(entry, stream, bigEndian);
             }
             else if ((entry.fieldType == 6) || (entry.fieldType == 7) || (entry.fieldType == 8) || (entry.fieldType == 9))
             {
-                valueList = getEntryContents32Signed(entry, stream, bigEndian);
+                valueList = await getEntryContents32Signed(entry, stream, bigEndian);
             }
             else if (entry.fieldType == 11)
             {
-                valueList = getEntryContentsFloat(entry, stream, bigEndian);
+                valueList = await getEntryContentsFloat(entry, stream, bigEndian);
             }
             else if (entry.fieldType == 12)
             {
-                valueList = getEntryContentsDouble(entry, stream, bigEndian);
+                valueList = await getEntryContentsDouble(entry, stream, bigEndian);
             }
 
             var valStr = "";
@@ -411,16 +411,16 @@ function parseTiffDir(stream, bigEndian, ifdOffset, ifdTag, extraIfdOffset, make
     return nextIfdOffset;
 }
 
-function getTiffInfo(stream, topLevelIfdTag) {
+async function getTiffInfo(stream, topLevelIfdTag) {
     var tagList = [];
 
-    var endianStr = stream.readAsciiString(2);
+    var endianStr = await stream.readAsciiString(2);
     var bigEndian = endianStr == "MM";
     stream.skip(2);
-    var ifdOffset = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
+    var ifdOffset = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
 
     for (var i = 0; i < 32; i++) {
-        ifdOffset = parseTiffDir(stream, bigEndian, ifdOffset, topLevelIfdTag, 0, 0, tagList, 0);
+        ifdOffset = await parseTiffDir(stream, bigEndian, ifdOffset, topLevelIfdTag, 0, 0, tagList, 0);
         if (ifdOffset == 0) {
             break;
         }
@@ -459,17 +459,17 @@ function getTiffTagName(tag, ifdType, makernoteType) {
     return name;
 }
 
-function tiffReadStream(reader, position, results, sendThumbnailToPreview) {
+async function tiffReadStream(reader, position, results, sendThumbnailToPreview) {
     try {
         var exifStream = new DataStream(reader, position);
-        var exifTagList = getTiffInfo(exifStream, 0);
-        tiffPopulateResults(reader, position, exifTagList, results, sendThumbnailToPreview);
+        var exifTagList = await getTiffInfo(exifStream, 0);
+        await tiffPopulateResults(reader, position, exifTagList, results, sendThumbnailToPreview);
     } catch(e) {
         console.log("Error while reading Exif: " + e);
     }
 }
 
-function tiffPopulateResults(reader, position, exifTagList, results, sendThumbnailToPreview) {
+async function tiffPopulateResults(reader, position, exifTagList, results, sendThumbnailToPreview) {
     var i, thumbOffset = 0, thumbLength = 0;
     var gpsLatitude = 0, gpsLongitude = 0, gpsS = false, gpsW = false;
     for (i = 0; i < exifTagList.length; i++) {
@@ -515,18 +515,18 @@ function tiffPopulateResults(reader, position, exifTagList, results, sendThumbna
         }
         if (thumbOffset > 0 && thumbLength > 0) {
             thumbOffset += position;
-            var thumbString = "data:image/png;base64," + base64FromArrayBuffer(reader.dataView.buffer, thumbOffset, thumbLength);
+            var thumbString = "data:image/png;base64," + base64FromArrayBuffer(await reader.getSliceAsArrayBuffer(thumbOffset, thumbLength), 0, thumbLength);
             var thumbHtml = "<img class='previewImage' src='" + thumbString + "' />";
             var thumbResult = results.add("Thumbnail", thumbHtml);
             if (sendThumbnailToPreview) {
                 reader.onGetPreviewImage(thumbString);
             }
-            thumbResult.addResult(parseJpgStructure(reader, thumbOffset));
+            thumbResult.addResult(await parseJpgStructure(reader, thumbOffset));
             thumbOffset = 0;
             thumbLength = 0;
         }
         if (exifTagList[i].subTags.length > 0) {
-            tiffPopulateResults(reader, position, exifTagList[i].subTags, node, sendThumbnailToPreview);
+            await tiffPopulateResults(reader, position, exifTagList[i].subTags, node, sendThumbnailToPreview);
         }
     }
 }

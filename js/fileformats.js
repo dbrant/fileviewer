@@ -49,9 +49,9 @@ var FileFormatList = [
         "",
         "JPEG",
         [ "tiff.js", "filePsd.js", "fileJpg.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0xFF) && (reader.byteAt(1) == 0xD8) && (reader.byteAt(2) == 0xFF)
-                && (reader.byteAt(3) == 0xE0 || reader.byteAt(3) == 0xE1 || reader.byteAt(3) == 0xFE)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0xFF) && (await reader.byteAt(1) == 0xD8) && (await reader.byteAt(2) == 0xFF)
+                && (await reader.byteAt(3) == 0xE0 || await reader.byteAt(3) == 0xE1 || await reader.byteAt(3) == 0xFE)) {
                 this.canPreviewNatively = true;
                 return true;
             }
@@ -62,9 +62,9 @@ var FileFormatList = [
         "",
         "Portable Network Graphics",
         [ "filePng.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x89) && (reader.byteAt(1) == 0x50)
-                && (reader.byteAt(2) == 0x4E) && (reader.byteAt(3) == 0x47)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x89) && (await reader.byteAt(1) == 0x50)
+                && (await reader.byteAt(2) == 0x4E) && (await reader.byteAt(3) == 0x47)) {
                 this.canPreviewNatively = true;
                 return true;
             }
@@ -75,9 +75,9 @@ var FileFormatList = [
         "",
         "GIF",
         [ "fileGif.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x47) && (reader.byteAt(1) == 0x49)
-                && (reader.byteAt(2) == 0x46) && (reader.byteAt(3) == 0x38) && (reader.byteAt(5) == 0x61)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x47) && (await reader.byteAt(1) == 0x49)
+                && (await reader.byteAt(2) == 0x46) && (await reader.byteAt(3) == 0x38) && (await reader.byteAt(5) == 0x61)) {
                 this.canPreviewNatively = true;
                 return true;
             }
@@ -88,15 +88,15 @@ var FileFormatList = [
         "",
         "Tagged Image File Format",
         [ "tiff.js", "fileJpg.js", "fileTiff.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x49) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x2A) && (reader.byteAt(3) == 0)
-                || (reader.byteAt(0) == 0x4D) && (reader.byteAt(1) == 0x4D) && (reader.byteAt(2) == 0) && (reader.byteAt(3) == 0x2A)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x49) && (await reader.byteAt(1) == 0x49) && (await reader.byteAt(2) == 0x2A) && (await reader.byteAt(3) == 0)
+                || (await reader.byteAt(0) == 0x4D) && (await reader.byteAt(1) == 0x4D) && (await reader.byteAt(2) == 0) && (await reader.byteAt(3) == 0x2A)) {
                 return true;
             }
-            else if ((reader.byteAt(0) == 0x49) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x52) && (reader.byteAt(3) == 0x4F)) {
+            else if ((await reader.byteAt(0) == 0x49) && (await reader.byteAt(1) == 0x49) && (await reader.byteAt(2) == 0x52) && (await reader.byteAt(3) == 0x4F)) {
                 return true;
             }
-            else if ((reader.byteAt(0) == 0x49) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x55) && (reader.byteAt(3) == 0)) {
+            else if ((await reader.byteAt(0) == 0x49) && (await reader.byteAt(1) == 0x49) && (await reader.byteAt(2) == 0x55) && (await reader.byteAt(3) == 0)) {
                 return true;
             }
             return false;
@@ -106,9 +106,9 @@ var FileFormatList = [
         "",
         "Netpbm format",
         [ "filePnm.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x50) && (reader.byteAt(1) >= 0x31) && (reader.byteAt(1) <= 0x36)
-                && ((reader.byteAt(2) == 0xA) || (reader.byteAt(2) == 0xD) || (reader.byteAt(2) == 0x20))) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x50) && (await reader.byteAt(1) >= 0x31) && (await reader.byteAt(1) <= 0x36)
+                && ((await reader.byteAt(2) == 0xA) || (await reader.byteAt(2) == 0xD) || (await reader.byteAt(2) == 0x20))) {
                 return true;
             }
             return false;
@@ -118,8 +118,8 @@ var FileFormatList = [
         "",
         "MPEG-4 Part 14",
         [ "tiff.js", "fileJpg.js", "filePng.js", "fileMov.js" ],
-        function(reader) {
-            if ((reader.byteAt(4) == 0x66) && (reader.byteAt(5) >= 0x74) && (reader.byteAt(6) <= 0x79) && (reader.byteAt(7) == 0x70)) {
+        async function(reader) {
+            if ((await reader.byteAt(4) == 0x66) && (await reader.byteAt(5) >= 0x74) && (await reader.byteAt(6) <= 0x79) && (await reader.byteAt(7) == 0x70)) {
                 return true;
             }
             return false;
@@ -129,8 +129,8 @@ var FileFormatList = [
         "",
         "Better Portable Graphics",
         [ "bpgdec8.js", "fileBpg.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) >= 0x50) && (reader.byteAt(2) <= 0x47) && (reader.byteAt(3) == 0xFB)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x42) && (await reader.byteAt(1) >= 0x50) && (await reader.byteAt(2) <= 0x47) && (await reader.byteAt(3) == 0xFB)) {
                 return true;
             }
             return false;
@@ -140,7 +140,7 @@ var FileFormatList = [
         "",
         "Truevision TGA",
         [ "fileTga.js" ],
-        function(reader) {
+        async function(reader) {
             // only detectable via extension
             return false;
         }),
@@ -149,9 +149,9 @@ var FileFormatList = [
         "",
         "PCX",
         [ "filePcx.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0xA) && ((reader.byteAt(1) == 0x3) || (reader.byteAt(1) == 0x5)) && (reader.byteAt(2) == 0x1)
-                && ((reader.byteAt(3) == 0x8) || (reader.byteAt(3) == 0x4) || (reader.byteAt(3) == 0x2) || (reader.byteAt(3) == 0x1))) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0xA) && ((await reader.byteAt(1) == 0x3) || (await reader.byteAt(1) == 0x5)) && (await reader.byteAt(2) == 0x1)
+                && ((await reader.byteAt(3) == 0x8) || (await reader.byteAt(3) == 0x4) || (await reader.byteAt(3) == 0x2) || (await reader.byteAt(3) == 0x1))) {
                 return true;
             }
             return false;
@@ -161,9 +161,9 @@ var FileFormatList = [
         "",
         "Silicon Graphics Image",
         [ "fileSgi.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x1) && (reader.byteAt(1) == 0xDA) && (reader.byteAt(2) == 0x1)
-                && (reader.byteAt(3) == 0x1) && (reader.byteAt(4) == 0x0)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x1) && (await reader.byteAt(1) == 0xDA) && (await reader.byteAt(2) == 0x1)
+                && (await reader.byteAt(3) == 0x1) && (await reader.byteAt(4) == 0x0)) {
                 return true;
             }
             return false;
@@ -173,8 +173,8 @@ var FileFormatList = [
         "",
         "Sun Raster",
         [ "fileRas.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x59) && (reader.byteAt(1) == 0xA6) && (reader.byteAt(2) == 0x6A) && (reader.byteAt(3) == 0x95)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x59) && (await reader.byteAt(1) == 0xA6) && (await reader.byteAt(2) == 0x6A) && (await reader.byteAt(3) == 0x95)) {
                 return true;
             }
             return false;
@@ -184,8 +184,8 @@ var FileFormatList = [
         "",
         "BMP file format",
         [ "fileBmp.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x42) && (reader.byteAt(1) == 0x4D) && (reader.byteAt(6) == 0x0) && (reader.byteAt(8) == 0x0)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x42) && (await reader.byteAt(1) == 0x4D) && (await reader.byteAt(6) == 0x0) && (await reader.byteAt(8) == 0x0)) {
                 this.canPreviewNatively = true;
                 return true;
             }
@@ -195,9 +195,9 @@ var FileFormatList = [
     new FileFormat("riff", "", "",
         "Resource Interchange File Format",
         [ "fileRiff.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x52) && (reader.byteAt(1) == 0x49) && (reader.byteAt(2) == 0x46) && (reader.byteAt(3) == 0x46)) {
-                var riffType = reader.getAsciiStringAt(8, 4);
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x52) && (await reader.byteAt(1) == 0x49) && (await reader.byteAt(2) == 0x46) && (await reader.byteAt(3) == 0x46)) {
+                var riffType = await reader.getAsciiStringAt(8, 4);
                 if (riffType == "AVI ") {
                     this.ext = "avi";
                     this.shortDesc = "Audio Video Interleave format.";
@@ -253,10 +253,10 @@ var FileFormatList = [
         "",
         "",
         [ "tiff.js", "fileJpg.js", "fileRaf.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x46) && (reader.byteAt(1) == 0x55) && (reader.byteAt(2) == 0x4A) && (reader.byteAt(3) == 0x49)) {
-                if ((reader.byteAt(12) == 0x52) && (reader.byteAt(13) == 0x41) && (reader.byteAt(14) == 0x57) && (reader.byteAt(15) == 0x20)
-                    && (reader.byteAt(16) == 0x30) && (reader.byteAt(17) == 0x32) && (reader.byteAt(18) == 0x30) && (reader.byteAt(19) == 0x31)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x46) && (await reader.byteAt(1) == 0x55) && (await reader.byteAt(2) == 0x4A) && (await reader.byteAt(3) == 0x49)) {
+                if ((await reader.byteAt(12) == 0x52) && (await reader.byteAt(13) == 0x41) && (await reader.byteAt(14) == 0x57) && (await reader.byteAt(15) == 0x20)
+                    && (await reader.byteAt(16) == 0x30) && (await reader.byteAt(17) == 0x32) && (await reader.byteAt(18) == 0x30) && (await reader.byteAt(19) == 0x31)) {
                     return true;
                 }
             }
@@ -267,9 +267,9 @@ var FileFormatList = [
         "",
         "X PixMap",
         [ "fileXpm.js" ],
-        function(reader) {
-            if ((reader.byteAt(0) == 0x2F) && (reader.byteAt(1) == 0x2A) && (reader.byteAt(2) == 0x20)
-                && (reader.byteAt(3) == 0x58) && (reader.byteAt(4) == 0x50) && (reader.byteAt(5) == 0x4D)) {
+        async function(reader) {
+            if ((await reader.byteAt(0) == 0x2F) && (await reader.byteAt(1) == 0x2A) && (await reader.byteAt(2) == 0x20)
+                && (await reader.byteAt(3) == 0x58) && (await reader.byteAt(4) == 0x50) && (await reader.byteAt(5) == 0x4D)) {
                 return true;
             }
             return false;
@@ -279,9 +279,9 @@ var FileFormatList = [
         "",
         "DICOM",
         [ "fileDicom.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x80) == 0x44) && (reader.byteAt(0x81) == 0x49) && (reader.byteAt(0x82) == 0x43)
-                && (reader.byteAt(0x83) == 0x4D) && (reader.byteAt(0x84) == 0x2) && (reader.byteAt(0x85) == 0x0)) {
+        async function(reader) {
+            if ((await reader.byteAt(0x80) == 0x44) && (await reader.byteAt(0x81) == 0x49) && (await reader.byteAt(0x82) == 0x43)
+                && (await reader.byteAt(0x83) == 0x4D) && (await reader.byteAt(0x84) == 0x2) && (await reader.byteAt(0x85) == 0x0)) {
                 return true;
             }
             return false;
@@ -291,9 +291,9 @@ var FileFormatList = [
         "",
         "MP3",
         [ "tiff.js", "fileJpg.js", "filePng.js", "filePsd.js", "fileMp3.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x0) == 0x49) && (reader.byteAt(0x1) == 0x44) && (reader.byteAt(0x2) == 0x33)
-                && (reader.byteAt(0x3) > 1) && (reader.byteAt(0x3) < 8)) {
+        async function(reader) {
+            if ((await reader.byteAt(0x0) == 0x49) && (await reader.byteAt(0x1) == 0x44) && (await reader.byteAt(0x2) == 0x33)
+                && (await reader.byteAt(0x3) > 1) && (await reader.byteAt(0x3) < 8)) {
                 return true;
             }
             return false;
@@ -303,8 +303,8 @@ var FileFormatList = [
         "",
         "Zip (file format)",
         [ "fileZip.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x0) == 0x50) && (reader.byteAt(0x1) == 0x4B) && (reader.byteAt(0x2) == 0x3) && (reader.byteAt(0x3) == 0x4)) {
+        async function(reader) {
+            if ((await reader.byteAt(0x0) == 0x50) && (await reader.byteAt(0x1) == 0x4B) && (await reader.byteAt(0x2) == 0x3) && (await reader.byteAt(0x3) == 0x4)) {
                 return true;
             }
             return false;
@@ -314,8 +314,8 @@ var FileFormatList = [
         "",
         "Adobe_Photoshop#File_format",
         [ "tiff.js", "fileJpg.js", "filePsd.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x0) == 0x38) && (reader.byteAt(0x1) == 0x42) && (reader.byteAt(0x2) == 0x50) && (reader.byteAt(0x3) == 0x53) && (reader.byteAt(0x5) == 0x1)) {
+        async function(reader) {
+            if ((await reader.byteAt(0x0) == 0x38) && (await reader.byteAt(0x1) == 0x42) && (await reader.byteAt(0x2) == 0x50) && (await reader.byteAt(0x3) == 0x53) && (await reader.byteAt(0x5) == 0x1)) {
                 return true;
             }
             return false;
@@ -324,9 +324,9 @@ var FileFormatList = [
     new FileFormat("ogg", "", "",
         "Ogg",
         [ "fileOgg.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x0) == 0x4F) && (reader.byteAt(0x1) == 0x67) && (reader.byteAt(0x2) == 0x67) && (reader.byteAt(0x3) == 0x53)) {
-                var oggType = reader.getAsciiStringAt(0x1D, 6);
+        async function(reader) {
+            if ((await reader.byteAt(0x0) == 0x4F) && (await reader.byteAt(0x1) == 0x67) && (await reader.byteAt(0x2) == 0x67) && (await reader.byteAt(0x3) == 0x53)) {
+                var oggType = await reader.getAsciiStringAt(0x1D, 6);
                 if (oggType == "vorbis") {
                     this.ext = "oga";
                     this.shortDesc = "Ogg Vorbis audio.";
@@ -349,8 +349,8 @@ var FileFormatList = [
         "",
         "Object Linking and Embedding",
         [ "fileOle.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x0) == 0xD0) && (reader.byteAt(0x1) == 0xCF) && (reader.byteAt(0x2) == 0x11) && (reader.byteAt(0x3) == 0xE0) && (reader.byteAt(0x4) == 0xA1) && (reader.byteAt(0x5) == 0xB1)) {
+        async function(reader) {
+            if ((await reader.byteAt(0x0) == 0xD0) && (await reader.byteAt(0x1) == 0xCF) && (await reader.byteAt(0x2) == 0x11) && (await reader.byteAt(0x3) == 0xE0) && (await reader.byteAt(0x4) == 0xA1) && (await reader.byteAt(0x5) == 0xB1)) {
                 return true;
             }
             return false;
@@ -360,8 +360,8 @@ var FileFormatList = [
         "",
         "RAR (file format)",
         [ "fileRar.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x0) == 0x52) && (reader.byteAt(0x1) == 0x61) && (reader.byteAt(0x2) == 0x72) && (reader.byteAt(0x3) == 0x21) && (reader.byteAt(0x4) == 0x1A) && (reader.byteAt(0x5) == 0x7)) {
+        async function(reader) {
+            if ((await reader.byteAt(0x0) == 0x52) && (await reader.byteAt(0x1) == 0x61) && (await reader.byteAt(0x2) == 0x72) && (await reader.byteAt(0x3) == 0x21) && (await reader.byteAt(0x4) == 0x1A) && (await reader.byteAt(0x5) == 0x7)) {
                 return true;
             }
             return false;
@@ -371,8 +371,8 @@ var FileFormatList = [
         "",
         "Adaptive Multi-Rate audio codec",
         [ "fileAmr.js" ],
-        function(reader) {
-            if ((reader.byteAt(0x0) == 0x23) && (reader.byteAt(0x1) == 0x21) && (reader.byteAt(0x2) == 0x41) && (reader.byteAt(0x3) == 0x4D) && (reader.byteAt(0x4) == 0x52)) {
+        async function(reader) {
+            if ((await reader.byteAt(0x0) == 0x23) && (await reader.byteAt(0x1) == 0x21) && (await reader.byteAt(0x2) == 0x41) && (await reader.byteAt(0x3) == 0x4D) && (await reader.byteAt(0x4) == 0x52)) {
                 return true;
             }
             return false;
@@ -380,7 +380,7 @@ var FileFormatList = [
 
 ];
 
-var UnknownFileFormat = new FileFormat("", "Unknown file type", "", "", null, function() {
+var UnknownFileFormat = new FileFormat("", "Unknown file type", "", "", null, async function() {
     return true;
 });
 
@@ -395,10 +395,10 @@ function getSupportedFormats() {
     return formats;
 }
 
-function detectFileFormat(reader) {
+async function detectFileFormat(reader) {
     var detectedFormat = null;
     for (var i = 0; i < FileFormatList.length; i++) {
-        if (FileFormatList[i].detectFunc(reader)) {
+        if (await FileFormatList[i].detectFunc(reader)) {
             detectedFormat = FileFormatList[i];
             break;
         }
@@ -421,4 +421,3 @@ function detectFileFormatByExt(fileName) {
     }
     return detectedFormat;
 }
-

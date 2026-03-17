@@ -15,12 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("TIFF structure");
 
     try {
-        tiffReadStream(reader, 0, results, true);
+        await tiffReadStream(reader, 0, results, true);
     } catch(e) {
         console.log("Error while reading TIFF: " + e);
     }

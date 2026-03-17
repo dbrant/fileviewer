@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("PCX structure");
 	try {
@@ -30,27 +30,27 @@ function parseFormat(reader)
         var scanline, realscanline;
         var colorPalette;
 
-        tempByte = stream.readByte();
+        tempByte = await stream.readByte();
         if (tempByte != 10) {
             throw "This is not a valid PCX file.";
         }
-        tempByte = stream.readByte();
+        tempByte = await stream.readByte();
         if (tempByte < 3 || tempByte > 5) {
             throw "Only Version 3, 4, and 5 PCX files are supported.";
         }
-        tempByte = stream.readByte();
+        tempByte = await stream.readByte();
         if (tempByte != 1) {
             throw "Invalid PCX compression type.";
         }
-        imgBpp = stream.readByte();
+        imgBpp = await stream.readByte();
         if (imgBpp != 8 && imgBpp != 4 && imgBpp != 2 && imgBpp != 1) {
             throw "Only 8, 4, 2, and 1-bit PCX samples are supported.";
         }
 
-        var xmin = stream.readUShortLe();
-        var ymin = stream.readUShortLe();
-        var xmax = stream.readUShortLe();
-        var ymax = stream.readUShortLe();
+        var xmin = await stream.readUShortLe();
+        var ymin = await stream.readUShortLe();
+        var xmax = await stream.readUShortLe();
+        var ymax = await stream.readUShortLe();
 
         imgWidth = xmax - xmin + 1;
         imgHeight = ymax - ymin + 1;
@@ -59,14 +59,14 @@ function parseFormat(reader)
             throw "This PCX file appears to have invalid dimensions.";
         }
 
-        stream.readUShortLe(); //hdpi
-        stream.readUShortLe(); //vdpi
+        await stream.readUShortLe(); //hdpi
+        await stream.readUShortLe(); //vdpi
 
-        colorPalette = stream.readBytes(48);
+        colorPalette = await stream.readBytes(48);
         stream.skip(1);
 
-        var numPlanes = stream.readByte();
-        var bytesPerLine = stream.readUShortLe();
+        var numPlanes = await stream.readByte();
+        var bytesPerLine = await stream.readUShortLe();
         if (bytesPerLine == 0) {
             bytesPerLine = xmax - xmin + 1;
         }
@@ -74,7 +74,7 @@ function parseFormat(reader)
         if (imgBpp == 8 && numPlanes == 1)
         {
             stream.seek(-768, 2);
-            colorPalette = stream.readBytes(768);
+            colorPalette = await stream.readBytes(768);
         }
 
         //fix color palette if it's a 1-bit image, and there's no palette information
@@ -110,7 +110,7 @@ function parseFormat(reader)
                     for (p = 0; p < numPlanes; p++) {
                         x = 0;
                         for (i = 0; i < bytesPerLine; i++) {
-                            scanline[i] = rleReader.readByte();
+                            scanline[i] = await rleReader.readByte();
                             for (b = 7; b >= 0; b--) {
                                 if ((scanline[i] & (1 << b)) != 0) val = 1; else val = 0;
                                 realscanline[x] |= (val << p);
@@ -133,7 +133,7 @@ function parseFormat(reader)
                         scanline = [];
                         for (y = 0; y < imgHeight; y++) {
                             for (i = 0; i < bytesPerLine; i++) {
-                                scanline[i] = rleReader.readByte();
+                                scanline[i] = await rleReader.readByte();
                             }
                             for (x = 0; x < imgWidth; x++) {
                                 i = scanline[x];
@@ -148,7 +148,7 @@ function parseFormat(reader)
                         scanline = [];
                         for (y = 0; y < imgHeight; y++) {
                             for (i = 0; i < bytesPerLine; i++) {
-                                scanline[i] = rleReader.readByte();
+                                scanline[i] = await rleReader.readByte();
                             }
                             for (x = 0; x < imgWidth; x++) {
                                 i = scanline[x / 2];
@@ -168,7 +168,7 @@ function parseFormat(reader)
                         scanline = [];
                         for (y = 0; y < imgHeight; y++) {
                             for (i = 0; i < bytesPerLine; i++) {
-                                scanline[i] = rleReader.readByte();
+                                scanline[i] = await rleReader.readByte();
                             }
                             for (x = 0; x < imgWidth; x++) {
                                 i = scanline[x / 4];
@@ -203,13 +203,13 @@ function parseFormat(reader)
 
                     for (y = 0; y < imgHeight; y++) {
                         for (i = 0; i < bytesPerLine; i++) {
-                            scanlineR[i] = rleReader.readByte();
+                            scanlineR[i] = await rleReader.readByte();
                         }
                         for (i = 0; i < bytesPerLine; i++) {
-                            scanlineG[i] = rleReader.readByte();
+                            scanlineG[i] = await rleReader.readByte();
                         }
                         for (i = 0; i < bytesPerLine; i++) {
-                            scanlineB[i] = rleReader.readByte();
+                            scanlineB[i] = await rleReader.readByte();
                         }
 
                         for (var n = 0; n < imgWidth; n++) {
@@ -241,17 +241,17 @@ var pcxRleReader = function(stream) {
     this.runLength = 0;
     this.runIndex = 0;
 
-    this.readByte = function () {
+    this.readByte = async function () {
         if (this.runLength > 0) {
             this.runIndex++;
             if (this.runIndex == (this.runLength - 1))
                 this.runLength = 0;
         }
         else {
-            this.currentByte = this.stream.readByte();
+            this.currentByte = await this.stream.readByte();
             if (this.currentByte > 191) {
                 this.runLength = this.currentByte - 192;
-                this.currentByte = this.stream.readByte();
+                this.currentByte = await this.stream.readByte();
                 if (this.runLength == 1) {
                     this.runLength = 0;
                 }

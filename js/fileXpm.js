@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("XPM structure");
     try {
@@ -27,7 +27,7 @@ function parseFormat(reader)
         var i, j;
 
         while (!stream.eof()) {
-            line = xpmReadLine(stream);
+            line = await xpmReadLine(stream);
             if ((line.length == 0) || (line.indexOf("\"") == -1)) {
                 continue;
             }
@@ -65,7 +65,7 @@ function parseFormat(reader)
         var colorName, colorValue;
 
         while (!stream.eof()) {
-            line = xpmReadLine(stream);
+            line = await xpmReadLine(stream);
             if ((line.length == 0) || (line.indexOf("\"") == -1)) {
                 continue;
             }
@@ -97,7 +97,7 @@ function parseFormat(reader)
             y = 0;
             x = 0;
             while (!stream.eof()) {
-                line = xpmReadLine(stream);
+                line = await xpmReadLine(stream);
                 if ((line.length == 0) || (line.indexOf("\"") == -1)) {
                     continue;
                 }
@@ -194,12 +194,12 @@ function xpmParseColor(colorStr) {
     return ret;
 }
 
-function xpmReadLine(stream)
+async function xpmReadLine(stream)
 {
     var str = "";
     var nextChar;
     while (!stream.eof()) {
-        nextChar = stream.readByte();
+        nextChar = await stream.readByte();
         if (nextChar == 0xA || nextChar == 0xD) {
             break;
         }

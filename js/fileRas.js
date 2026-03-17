@@ -15,24 +15,24 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("RAS structure");
 	try {
 		var stream = new DataStream(reader);
 
-        if (stream.readUIntBe() != 0x59A66A95) {
+        if (await stream.readUIntBe() != 0x59A66A95) {
             throw "This is not a valid RAS file.";
         }
 
         var i, dx, dy, b, val, bytePtr, tempByte, scanline;
-        var imgWidth = stream.readUIntBe();
-        var imgHeight = stream.readUIntBe();
-        var imgBpp = stream.readUIntBe();
-        var dataLength = stream.readUIntBe();
-        var rasType = stream.readUIntBe();
-        var mapType = stream.readUIntBe();
-        var mapLength = stream.readUIntBe();
+        var imgWidth = await stream.readUIntBe();
+        var imgHeight = await stream.readUIntBe();
+        var imgBpp = await stream.readUIntBe();
+        var dataLength = await stream.readUIntBe();
+        var rasType = await stream.readUIntBe();
+        var mapType = await stream.readUIntBe();
+        var mapLength = await stream.readUIntBe();
 
         if ((imgWidth < 1) || (imgHeight < 1) || (imgWidth > 32767) || (imgHeight > 32767) || (mapLength > 32767)) {
             throw "This RAS file appears to have invalid dimensions.";
@@ -47,7 +47,7 @@ function parseFormat(reader)
         var colorPalette = [];
         if (mapType > 0)
         {
-            colorPalette = stream.readBytes(mapLength)
+            colorPalette = await stream.readBytes(mapLength)
         }
 
         results.add("Width", imgWidth);
@@ -65,7 +65,7 @@ function parseFormat(reader)
                 bytePtr = 0;
                 while (dy < imgHeight)
                 {
-                    b = rleReader.readByte();
+                    b = await rleReader.readByte();
                     if (b == -1) { break; }
                     for (i = 7; i >= 0; i--)
                     {
@@ -91,12 +91,12 @@ function parseFormat(reader)
                 {
                     for (i = 0; i < imgWidth; i++)
                     {
-                        tempByte = rleReader.readByte();
+                        tempByte = await rleReader.readByte();
                         scanline[i++] = ((tempByte >> 4) & 0xF);
                         scanline[i] = (tempByte & 0xF);
                     }
                     if (imgWidth % 2 == 1) {
-                        rleReader.readByte();
+                        await rleReader.readByte();
                     }
                     if ((mapType > 0) && (mapLength == 48))
                     {
@@ -127,10 +127,10 @@ function parseFormat(reader)
                 for (dy = 0; dy < imgHeight; dy++)
                 {
                     for (i = 0; i < imgWidth; i++) {
-                        scanline[i] = rleReader.readByte();
+                        scanline[i] = await rleReader.readByte();
                     }
                     if (imgWidth % 2 == 1) {
-                        rleReader.readByte();
+                        await rleReader.readByte();
                     }
                     if ((mapType > 0) && (mapLength == 768))
                     {
@@ -161,10 +161,10 @@ function parseFormat(reader)
                 for (dy = 0; dy < imgHeight; dy++)
                 {
                     for (i = 0; i < imgWidth * 3; i++) {
-                        scanline[i] = rleReader.readByte();
+                        scanline[i] = await rleReader.readByte();
                     }
                     if ((imgWidth * 3) % 2 == 1) {
-                        stream.readByte();
+                        await stream.readByte();
                     }
                     for (dx = 0; dx < imgWidth; dx++)
                     {
@@ -182,7 +182,7 @@ function parseFormat(reader)
                 for (dy = 0; dy < imgHeight; dy++)
                 {
                     for (i = 0; i < imgWidth * 4; i++) {
-                        scanline[i] = rleReader.readByte();
+                        scanline[i] = await rleReader.readByte();
                     }
                     for (dx = 0; dx < imgWidth; dx++)
                     {
@@ -212,9 +212,9 @@ var rasRleReader = function(stream, isRle) {
     this.runIndex = 0;
     this.isRle = isRle;
 
-    this.readByte = function () {
+    this.readByte = async function () {
         if (!this.isRle) {
-            return this.stream.readByte();
+            return await this.stream.readByte();
         }
         if (this.runLength > 0) {
             this.runIndex++;
@@ -223,16 +223,16 @@ var rasRleReader = function(stream, isRle) {
             }
         }
         else {
-            this.currentByte = stream.readByte();
+            this.currentByte = await stream.readByte();
             if (this.currentByte == 0x80) {
-                this.currentByte = stream.readByte();
+                this.currentByte = await stream.readByte();
                 if (this.currentByte == 0) {
                     this.currentByte = 0x80;
                 }
                 else {
                     this.runLength = this.currentByte + 1;
                     this.runIndex = 0;
-                    this.currentByte = stream.readByte();
+                    this.currentByte = await stream.readByte();
                 }
             }
         }

@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("TGA structure");
 	try {
@@ -24,25 +24,25 @@ function parseFormat(reader)
         var i, j, x, y, hi, lo;
         var palette = [];
         var scanline = [];
-        var idFieldLength = stream.readByte();
-        var colorMap = stream.readByte();
-        var imageType = stream.readByte();
-        var colorMapOffset = stream.readUShortLe();
-        var colorsUsed = stream.readUShortLe();
-        var bitsPerColorMap = stream.readByte();
-        var xCoord = stream.readUShortLe();
-        var yCoord = stream.readUShortLe();
-        var imgWidth = stream.readUShortLe();
-        var imgHeight = stream.readUShortLe();
-        var bitsPerPixel = stream.readByte();
-        var imgFlags = stream.readByte();
+        var idFieldLength = await stream.readByte();
+        var colorMap = await stream.readByte();
+        var imageType = await stream.readByte();
+        var colorMapOffset = await stream.readUShortLe();
+        var colorsUsed = await stream.readUShortLe();
+        var bitsPerColorMap = await stream.readByte();
+        var xCoord = await stream.readUShortLe();
+        var yCoord = await stream.readUShortLe();
+        var imgWidth = await stream.readUShortLe();
+        var imgHeight = await stream.readUShortLe();
+        var bitsPerPixel = await stream.readByte();
+        var imgFlags = await stream.readByte();
         var imgOrientation = (imgFlags >> 4) & 0x3;
 
         if (colorMap > 1) {
             throw "This is not a valid TGA file.";
         }
         if (idFieldLength > 0) {
-            var tgaIdStr = stream.readAsciiString(idFieldLength);
+            var tgaIdStr = await stream.readAsciiString(idFieldLength);
             results.add("Targa image ID", tgaIdStr);
         }
 
@@ -90,9 +90,9 @@ function parseFormat(reader)
                     for (i = colorMapOffset; i < paletteEntries; i++)
                     {
                         palette[i] = 0xFF000000;
-                        palette[i] |= (stream.readByte() << 16);
-                        palette[i] |= (stream.readByte() << 8);
-                        palette[i] |= (stream.readByte());
+                        palette[i] |= (await stream.readByte() << 16);
+                        palette[i] |= (await stream.readByte() << 8);
+                        palette[i] |= (await stream.readByte());
                     }
                 }
                 else if (bitsPerColorMap == 32)
@@ -100,18 +100,18 @@ function parseFormat(reader)
                     for (i = colorMapOffset; i < paletteEntries; i++)
                     {
                         palette[i] = 0xFF000000;
-                        palette[i] |= (stream.readByte() << 16);
-                        palette[i] |= (stream.readByte() << 8);
-                        palette[i] |= (stream.readByte());
-                        palette[i] |= (stream.readByte() << 24);
+                        palette[i] |= (await stream.readByte() << 16);
+                        palette[i] |= (await stream.readByte() << 8);
+                        palette[i] |= (await stream.readByte());
+                        palette[i] |= (await stream.readByte() << 24);
                     }
                 }
                 else if ((bitsPerColorMap == 15) || (bitsPerColorMap == 16))
                 {
                     for (i = colorMapOffset; i < paletteEntries; i++)
                     {
-                        hi = stream.readByte();
-                        lo = stream.readByte();
+                        hi = await stream.readByte();
+                        lo = await stream.readByte();
                         palette[i] = 0xFF000000;
                         palette[i] |= ((hi & 0x1F) << 3) << 16;
                         palette[i] |= ((((lo & 0x3) << 3) + ((hi & 0xE0) >> 5)) << 3) << 8;
@@ -126,7 +126,7 @@ function parseFormat(reader)
                 {
                     switch (bitsPerPixel) {
                         case 8:
-                            scanline = stream.readBytes(imgWidth * (bitsPerPixel / 8));
+                            scanline = await stream.readBytes(imgWidth * (bitsPerPixel / 8));
                             if (imageType == 1) {
                                 for (x = 0; x < imgWidth; x++) {
                                     bmpData[4 * (y * imgWidth + x)] = ((palette[scanline[x]]) & 0xFF);
@@ -147,8 +147,8 @@ function parseFormat(reader)
                         case 15:
                         case 16:
                             for (x = 0; x < imgWidth; x++) {
-                                hi = stream.readByte();
-                                lo = stream.readByte();
+                                hi = await stream.readByte();
+                                lo = await stream.readByte();
                                 bmpData[4 * (y * imgWidth + x)] = (((lo & 0x7F) >> 2) << 3);
                                 bmpData[4 * (y * imgWidth + x) + 1] = ((((lo & 0x3) << 3) + ((hi & 0xE0) >> 5)) << 3);
                                 bmpData[4 * (y * imgWidth + x) + 2] = ((hi & 0x1F) << 3);
@@ -156,7 +156,7 @@ function parseFormat(reader)
                             }
                             break;
                         case 24:
-                            scanline = stream.readBytes(imgWidth * (bitsPerPixel / 8));
+                            scanline = await stream.readBytes(imgWidth * (bitsPerPixel / 8));
                             for (x = 0; x < imgWidth; x++) {
                                 bmpData[4 * (y * imgWidth + x)] = scanline[x * 3 + 2];
                                 bmpData[4 * (y * imgWidth + x) + 1] = scanline[x * 3 + 1];
@@ -165,7 +165,7 @@ function parseFormat(reader)
                             }
                             break;
                         case 32:
-                            scanline = stream.readBytes(imgWidth * (bitsPerPixel / 8));
+                            scanline = await stream.readBytes(imgWidth * (bitsPerPixel / 8));
                             for (x = 0; x < imgWidth; x++) {
                                 bmpData[4 * (y * imgWidth + x)] = scanline[x * 4 + 2];
                                 bmpData[4 * (y * imgWidth + x) + 1] = scanline[x * 4 + 1];
@@ -185,13 +185,13 @@ function parseFormat(reader)
 
                 while (y >= 0 && !stream.eof())
                 {
-                    i = stream.readByte();
+                    i = await stream.readByte();
                     if (i < 128)
                     {
                         i++;
                         switch (bitsPerPixel) {
                             case 8:
-                                scanline = stream.readBytes(i * bytesPerPixel);
+                                scanline = await stream.readBytes(i * bytesPerPixel);
                                 if (imageType == 9) {
                                     for (j = 0; j < i; j++) {
                                         bmpData[4 * (y * imgWidth + x)] = ((palette[scanline[j]]) & 0xFF);
@@ -222,8 +222,8 @@ function parseFormat(reader)
                             case 15:
                             case 16:
                                 for (j = 0; j < i; j++) {
-                                    hi = stream.readByte();
-                                    lo = stream.readByte();
+                                    hi = await stream.readByte();
+                                    lo = await stream.readByte();
                                     bmpData[4 * (y * imgWidth + x)] = (((lo & 0x7F) >> 2) << 3);
                                     bmpData[4 * (y * imgWidth + x) + 1] = ((((lo & 0x3) << 3) + ((hi & 0xE0) >> 5)) << 3);
                                     bmpData[4 * (y * imgWidth + x) + 2] = ((hi & 0x1F) << 3);
@@ -236,7 +236,7 @@ function parseFormat(reader)
                                 }
                                 break;
                             case 24:
-                                scanline = stream.readBytes(i * bytesPerPixel);
+                                scanline = await stream.readBytes(i * bytesPerPixel);
                                 for (j = 0; j < i; j++) {
                                     bmpData[4 * (y * imgWidth + x)] = scanline[j * 3 + 2];
                                     bmpData[4 * (y * imgWidth + x) + 1] = scanline[j * 3 + 1];
@@ -250,7 +250,7 @@ function parseFormat(reader)
                                 }
                                 break;
                             case 32:
-                                scanline = stream.readBytes(i * bytesPerPixel);
+                                scanline = await stream.readBytes(i * bytesPerPixel);
                                 for (j = 0; j < i; j++) {
                                     bmpData[4 * (y * imgWidth + x)] = scanline[j * 4 + 2];
                                     bmpData[4 * (y * imgWidth + x) + 1] = scanline[j * 4 + 1];
@@ -272,7 +272,7 @@ function parseFormat(reader)
 
                         switch (bitsPerPixel) {
                             case 8:
-                                p = stream.readByte();
+                                p = await stream.readByte();
                                 if (imageType == 9) {
                                     for (j = 0; j < i; j++) {
                                         bmpData[4 * (y * imgWidth + x)] = ((palette[p]) & 0xFF);
@@ -302,8 +302,8 @@ function parseFormat(reader)
                                 break;
                             case 15:
                             case 16:
-                                hi = stream.readByte();
-                                lo = stream.readByte();
+                                hi = await stream.readByte();
+                                lo = await stream.readByte();
                                 for (j = 0; j < i; j++) {
                                     bmpData[4 * (y * imgWidth + x)] = (((lo & 0x7F) >> 2) << 3);
                                     bmpData[4 * (y * imgWidth + x) + 1] = ((((lo & 0x3) << 3) + ((hi & 0xE0) >> 5)) << 3);
@@ -317,9 +317,9 @@ function parseFormat(reader)
                                 }
                                 break;
                             case 24:
-                                r = stream.readByte();
-                                g = stream.readByte();
-                                b = stream.readByte();
+                                r = await stream.readByte();
+                                g = await stream.readByte();
+                                b = await stream.readByte();
                                 for (j = 0; j < i; j++) {
                                     bmpData[4 * (y * imgWidth + x)] = b;
                                     bmpData[4 * (y * imgWidth + x) + 1] = g;
@@ -333,10 +333,10 @@ function parseFormat(reader)
                                 }
                                 break;
                             case 32:
-                                r = stream.readByte();
-                                g = stream.readByte();
-                                b = stream.readByte();
-                                a = stream.readByte();
+                                r = await stream.readByte();
+                                g = await stream.readByte();
+                                b = await stream.readByte();
+                                a = await stream.readByte();
                                 for (j = 0; j < i; j++) {
                                     bmpData[4 * (y * imgWidth + x)] = b;
                                     bmpData[4 * (y * imgWidth + x) + 1] = g;

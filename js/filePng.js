@@ -15,12 +15,12 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
-    return parsePngStructure(reader);
+    return await parsePngStructure(reader);
 }
 
-function parsePngStructure(reader, offset) {
+async function parsePngStructure(reader, offset) {
     var results = new ResultNode("PNG structure");
     try {
         var stream = new DataStream(reader);
@@ -33,8 +33,8 @@ function parsePngStructure(reader, offset) {
         stream.skip(8);
 
         while (!stream.eof()) {
-            chunkLength = stream.readUIntBe();
-            chunkType = stream.readAsciiString(4);
+            chunkLength = await stream.readUIntBe();
+            chunkType = await stream.readAsciiString(4);
 
             var node = results.add(chunkType, chunkLength.toString() + " bytes");
 
@@ -44,7 +44,7 @@ function parsePngStructure(reader, offset) {
                 var position = stream.position;
 
                 if (chunkType == "tEXt" && chunkLength < 65536) {
-                    var chunkStr = reader.getAsciiStringAt(position, chunkLength).replace("\0", " - ");
+                    var chunkStr = (await reader.getAsciiStringAt(position, chunkLength)).replace("\0", " - ");
                     node.add("Contents", chunkStr);
                 }
 

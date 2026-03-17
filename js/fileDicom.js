@@ -15,14 +15,14 @@
  limitations under the License.
  */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("DICOM structure");
 	try {
         var stream = new DataStream(reader);
         stream.skip(0x80);
 
-        if (stream.readAsciiString(4) != "DICM") {
+        if (await stream.readAsciiString(4) != "DICM") {
             throw "Not a valid DICOM file.";
         }
         stream.skip(8);
@@ -35,13 +35,13 @@ function parseFormat(reader)
         var i, j, x, y, b;
 
         //read the meta-group, and determine stuff from it
-        var metaGroupLen = stream.readUIntLe();
+        var metaGroupLen = await stream.readUIntLe();
         console.log("group len: " + metaGroupLen);
         if (metaGroupLen > 10000) {
             throw "Meta group is a bit too long. May not be a valid DICOM file.";
         }
 
-        var metaGroupStr = stream.readAsciiString(metaGroupLen);
+        var metaGroupStr = await stream.readAsciiString(metaGroupLen);
         if (metaGroupStr.indexOf("1.2.840.10008.1.2\0") >= 0) {
             explicitVR = false;
         }
@@ -69,38 +69,38 @@ function parseFormat(reader)
 
         while (!reachedData && !stream.eof())
         {
-            groupNumber = dicomGetGroupNumber(stream, bigEndian);
-            elementNumber = dicomGetShort(stream, groupNumber, bigEndian);
+            groupNumber = await dicomGetGroupNumber(stream, bigEndian);
+            elementNumber = await dicomGetShort(stream, groupNumber, bigEndian);
 
             if (groupNumber == 0x28)
             {
                 if (elementNumber == 0x2)
                 {
-                    samplesPerPixel = dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
+                    samplesPerPixel = await dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
                 }
                 else if (elementNumber == 0x8)
                 {
-                    numFrames = dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
+                    numFrames = await dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
                 }
                 else if (elementNumber == 0x10)
                 {
-                    imgHeight = dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
+                    imgHeight = await dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
                 }
                 else if (elementNumber == 0x11)
                 {
-                    imgWidth = dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
+                    imgWidth = await dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
                 }
                 else if (elementNumber == 0x100)
                 {
-                    bitsPerSample = dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
+                    bitsPerSample = await dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
                 }
                 else if (elementNumber == 0x101)
                 {
-                    bitsStored = dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
+                    bitsStored = await dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR);
                 }
                 else
                 {
-                    dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR, results);
+                    await dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR, results);
                 }
             }
             else if (groupNumber == 0x7FE0)
@@ -110,25 +110,25 @@ function parseFormat(reader)
                     //we've reached the data!
                     if (explicitVR)
                     {
-                        v1 = stream.readAsciiString(1);
-                        v2 = stream.readAsciiString(1);
-                        dicomGetShort(stream, groupNumber, false);
-                        dataLength = dicomGetInt(stream, groupNumber, bigEndian);
+                        v1 = await stream.readAsciiString(1);
+                        v2 = await stream.readAsciiString(1);
+                        await dicomGetShort(stream, groupNumber, false);
+                        dataLength = await dicomGetInt(stream, groupNumber, bigEndian);
                     }
                     else
                     {
-                        dataLength = dicomGetInt(stream, groupNumber, bigEndian);
+                        dataLength = await dicomGetInt(stream, groupNumber, bigEndian);
                     }
                     reachedData = true;
                 }
                 else
                 {
-                    dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR);
+                    await dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR);
                 }
             }
             else
             {
-                dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR, results);
+                await dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR, results);
             }
         }
 
@@ -146,22 +146,22 @@ function parseFormat(reader)
 
             while (!stream.eof())
             {
-                tempShort = dicomGetShort(stream, 0, bigEndian);
+                tempShort = await dicomGetShort(stream, 0, bigEndian);
                 if (tempShort != 0xFFFE)
                     break;
 
-                tempShort = dicomGetShort(stream, 0, bigEndian);
+                tempShort = await dicomGetShort(stream, 0, bigEndian);
                 if ((tempShort != 0xE000) && (tempShort != 0xE00D) && (tempShort != 0xE0DD))
                     break;
 
-                segmentLen = dicomGetInt(stream, 0, bigEndian);
+                segmentLen = await dicomGetInt(stream, 0, bigEndian);
 
                 if (segmentLen < 0 || segmentLen > 100000000)
                     break;
 
                 if (segmentLen > 0)
                 {
-                    var segment = stream.readBytes(segmentLen);
+                    var segment = await stream.readBytes(segmentLen);
                     dataSegments.push(segment);
                 }
             }
@@ -183,7 +183,7 @@ function parseFormat(reader)
 
         //detect whether the data is really a JPG image
 
-        if ((reader.byteAt(stream.position) == 0xFF) && (reader.byteAt(stream.position + 1) == 0xD8) && (reader.byteAt(stream.position + 2) == 0xFF))
+        if ((await reader.byteAt(stream.position) == 0xFF) && (await reader.byteAt(stream.position + 1) == 0xD8) && (await reader.byteAt(stream.position + 2) == 0xFF))
         {
             console.log(">> it's a JPG file!");
             return results;
@@ -211,7 +211,7 @@ function parseFormat(reader)
                     {
                         for (x = 0; x < imgWidth; x++)
                         {
-                            b = stream.readByte();
+                            b = await stream.readByte();
                             bmpData[4 * (y * imgWidth + x)] = b;
                             bmpData[4 * (y * imgWidth + x) + 1] = b;
                             bmpData[4 * (y * imgWidth + x) + 2] = b;
@@ -226,7 +226,7 @@ function parseFormat(reader)
                     try
                     {
                         for (i = 0; i < imgHeight * imgWidth; i++) {
-                            samples.push(dicomGetShort(stream, 0, bigEndian));
+                            samples.push(await dicomGetShort(stream, 0, bigEndian));
                         }
                     }
                     catch(e) { }
@@ -258,7 +258,7 @@ function parseFormat(reader)
                     {
                         for (x = 0; x < imgWidth; x++)
                         {
-                            b = (dicomGetFloat(stream, 0, bigEndian) * 255);
+                            b = (await dicomGetFloat(stream, 0, bigEndian) * 255);
                             bmpData[4 * (y * imgWidth + x)] = b;
                             bmpData[4 * (y * imgWidth + x) + 1] = b;
                             bmpData[4 * (y * imgWidth + x) + 2] = b;
@@ -275,9 +275,9 @@ function parseFormat(reader)
                     {
                         for (x = 0; x < imgWidth; x++)
                         {
-                            bmpData[4 * (y * imgWidth + x) + 2] = stream.readByte();
-                            bmpData[4 * (y * imgWidth + x) + 1] = stream.readByte();
-                            bmpData[4 * (y * imgWidth + x)] = stream.readByte();
+                            bmpData[4 * (y * imgWidth + x) + 2] = await stream.readByte();
+                            bmpData[4 * (y * imgWidth + x) + 1] = await stream.readByte();
+                            bmpData[4 * (y * imgWidth + x)] = await stream.readByte();
                             bmpData[4 * (y * imgWidth + x) + 3] = 0xFF;
                         }
                     }
@@ -305,95 +305,95 @@ function parseFormat(reader)
 }
 
 
-function dicomGetGroupNumber(stream, bigEndian)
+async function dicomGetGroupNumber(stream, bigEndian)
 {
     var ret = 0;
-    ret = stream.readUShortLe();
+    ret = await stream.readUShortLe();
     if (ret != 0x2) {
         if (bigEndian) {
             stream.seek(-2, 1);
-            ret = stream.readUShortBe();
+            ret = await stream.readUShortBe();
         }
     }
     return ret;
 }
 
-function dicomGetShort(stream, groupNumber, bigEndian)
+async function dicomGetShort(stream, groupNumber, bigEndian)
 {
     var ret = 0;
     if (groupNumber == 0x2)
     {
-        ret = stream.readUShortLe();
+        ret = await stream.readUShortLe();
     }
     else
     {
-        ret = bigEndian ? stream.readUShortBe() : stream.readUShortLe();
+        ret = bigEndian ? await stream.readUShortBe() : await stream.readUShortLe();
     }
     return ret;
 }
 
-function dicomGetInt(stream, groupNumber, bigEndian)
+async function dicomGetInt(stream, groupNumber, bigEndian)
 {
     var ret = 0;
     if (groupNumber == 0x2)
     {
-        ret = stream.readUIntLe();
+        ret = await stream.readUIntLe();
     }
     else
     {
-        ret = bigEndian ? stream.readUIntBe() : stream.readUIntLe();
+        ret = bigEndian ? await stream.readUIntBe() : await stream.readUIntLe();
     }
     return ret;
 }
 
-function dicomGetFloat(stream, groupNumber, bigEndian)
+async function dicomGetFloat(stream, groupNumber, bigEndian)
 {
     var ret = 0;
     if (groupNumber == 0x2)
     {
-        ret = stream.readFloatLe();
+        ret = await stream.readFloatLe();
     }
     else
     {
-        bigEndian ? stream.readFloatBe() : stream.readFloatLe();
+        bigEndian ? await stream.readFloatBe() : await stream.readFloatLe();
     }
     return ret;
 }
 
-function dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR)
+async function dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR)
 {
     var ret = 0, len;
     if (explicitVR)
     {
-        var v1 = stream.readAsciiString(1), v2 = stream.readAsciiString(1);
-        len = dicomGetShort(stream, groupNumber, bigEndian);
+        var v1 = await stream.readAsciiString(1), v2 = await stream.readAsciiString(1);
+        len = await dicomGetShort(stream, groupNumber, bigEndian);
         if (v1 == 'U' && v2 == 'S')
         {
             if (len != 2)
                 throw "Incorrect size for a US field.";
-            ret = dicomGetShort(stream, groupNumber, bigEndian);
+            ret = await dicomGetShort(stream, groupNumber, bigEndian);
         }
         else if (v1 == 'U' && v2 == 'L')
         {
             if (len != 4)
                 throw "Incorrect size for a UL field.";
-            ret = dicomGetInt(stream, groupNumber, bigEndian);
+            ret = await dicomGetInt(stream, groupNumber, bigEndian);
         }
         else if (v1 == 'S' && v2 == 'S')
         {
             if (len != 2)
                 throw "Incorrect size for a SS field.";
-            ret = dicomGetShort(stream, groupNumber, bigEndian);
+            ret = await dicomGetShort(stream, groupNumber, bigEndian);
         }
         else if (v1 == 'S' && v2 == 'L')
         {
             if (len != 4)
                 throw "Incorrect size for a SL field.";
-            ret = dicomGetInt(stream, groupNumber, bigEndian);
+            ret = await dicomGetInt(stream, groupNumber, bigEndian);
         }
         else if (v1 == 'I' && v2 == 'S' && len < 16)
         {
-            try { ret = parseInt(stream.readAsciiString(len)); }
+            try { ret = parseInt(await stream.readAsciiString(len)); }
             catch(e) { }
         }
         else
@@ -403,24 +403,24 @@ function dicomGetNumeric(stream, groupNumber, bigEndian, explicitVR)
     }
     else
     {
-        len = dicomGetInt(stream, groupNumber, bigEndian);
+        len = await dicomGetInt(stream, groupNumber, bigEndian);
         if (len == 2)
-            ret = dicomGetShort(stream, groupNumber, bigEndian);
+            ret = await dicomGetShort(stream, groupNumber, bigEndian);
         else if (len == 4)
-            ret = dicomGetInt(stream, groupNumber, bigEndian);
+            ret = await dicomGetInt(stream, groupNumber, bigEndian);
         else
             stream.seek(len, 1);
     }
     return ret;
 }
 
-function dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR, results)
+async function dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explicitVR, results)
 {
     var len;
     var str = "";
     if (groupNumber == 0xFFFE)
     {
-        len = dicomGetInt(stream, groupNumber, bigEndian);
+        len = await dicomGetInt(stream, groupNumber, bigEndian);
         if(len > 0)
             stream.seek(len, 1);
     }
@@ -428,20 +428,20 @@ function dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explici
     {
         if (explicitVR)
         {
-            var dVR = stream.readAsciiString(2);
+            var dVR = await stream.readAsciiString(2);
             if ((dVR == 'OB') || (dVR == 'OW') || (dVR == 'OF') || (dVR == 'SQ') || (dVR == 'UT') || (dVR == 'UN')) {
-                dicomGetShort(stream, groupNumber, false);
-                len = dicomGetInt(stream, groupNumber, bigEndian);
+                await dicomGetShort(stream, groupNumber, false);
+                len = await dicomGetInt(stream, groupNumber, bigEndian);
 
                 if (dVR == 'SQ')
                 {
-                    var tempShort = dicomGetShort(stream, groupNumber, bigEndian);
+                    var tempShort = await dicomGetShort(stream, groupNumber, bigEndian);
                     if (tempShort != 0xFFFE)
                         console.log("Warning: incorrect signature for SQ field.");
-                    tempShort = dicomGetShort(stream, groupNumber, bigEndian);
+                    tempShort = await dicomGetShort(stream, groupNumber, bigEndian);
                     if (tempShort != 0xE000)
                         console.log("Warning: incorrect signature for SQ field.");
-                    len = dicomGetInt(stream, groupNumber, bigEndian);
+                    len = await dicomGetInt(stream, groupNumber, bigEndian);
                 }
                 else
                 {
@@ -453,9 +453,9 @@ function dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explici
             }
             else
             {
-                len = dicomGetShort(stream, groupNumber, bigEndian);
+                len = await dicomGetShort(stream, groupNumber, bigEndian);
                 if (len > 0 && len < 1024 && dicomTextWorthyItems.indexOf(dVR) >= 0 && results !== undefined) {
-                    results.add(dVR, stream.readAsciiString(len));
+                    results.add(dVR, await stream.readAsciiString(len));
                 } else {
                     stream.seek(len, 1);
                 }
@@ -463,7 +463,7 @@ function dicomSkipElement(stream, groupNumber, elementNumber, bigEndian, explici
         }
         else
         {
-            len = dicomGetInt(stream, groupNumber, bigEndian);
+            len = await dicomGetInt(stream, groupNumber, bigEndian);
             if (len == -1)
                 len = 0;
             stream.seek(len, 1);

@@ -15,12 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
-    return parseJpgStructure(reader);
+    return await parseJpgStructure(reader);
 }
 
-function parseJpgStructure(reader, offset)
+async function parseJpgStructure(reader, offset)
 {
     var results = new ResultNode("JPEG structure");
 
@@ -40,7 +40,7 @@ function parseJpgStructure(reader, offset)
 
             //read bytes until we get an FF
             while (true) {
-                segmentStart = stream.readByte();
+                segmentStart = await stream.readByte();
                 if (segmentStart == 0xFF) {
                     break;
                 }
@@ -49,12 +49,12 @@ function parseJpgStructure(reader, offset)
             //read any number of FF bytes
             if (!scanStarted) {
                 while (true) {
-                    segmentType = stream.readByte();
+                    segmentType = await stream.readByte();
                     if (segmentType != 0xFF) break;
                 }
             }
             else {
-                segmentType = stream.readByte();
+                segmentType = await stream.readByte();
                 if (segmentType != 0) {
                     if ((segmentType < 0xC0) || (segmentType == 0xFF)) {
                         throw "Invalid segment type in Jpg file...";
@@ -88,7 +88,7 @@ function parseJpgStructure(reader, offset)
             else
             {
                 //read the length of the segment
-                segmentLength = stream.readUShortBe();
+                segmentLength = await stream.readUShortBe();
 
                 node = results.add(getJpgSegmentName(segmentType), segmentLength.toString() + " bytes");
 
@@ -105,25 +105,25 @@ function parseJpgStructure(reader, offset)
                 //if it's data we can use, pass it for processing!
                 if ((segmentType >= 0xE0) && (segmentType <= 0xEF))
                 {
-                    if ((reader.getAsciiStringAt(position, 4) == "Exif")
-                        && (((reader.byteAt(position + 6) == 0x4D) && (reader.byteAt(position + 7) == 0x4D)) || ((reader.byteAt(position + 6) == 0x49) && (reader.byteAt(position + 7) == 0x49))))
+                    if (((await reader.getAsciiStringAt(position, 4)) == "Exif")
+                        && ((((await reader.byteAt(position + 6)) == 0x4D) && ((await reader.byteAt(position + 7)) == 0x4D)) || (((await reader.byteAt(position + 6)) == 0x49) && ((await reader.byteAt(position + 7)) == 0x49))))
                     {
-                        tiffReadStream(reader, position + 6, node, false);
+                        await tiffReadStream(reader, position + 6, node, false);
                     }
-                    else if (((reader.byteAt(position) == 0x4D) && (reader.byteAt(position + 1) == 0x50) && (reader.byteAt(position + 2) == 0x46) && (reader.byteAt(position + 3) == 0))
-                        && (((reader.byteAt(position + 4) == 0x4D) && (reader.byteAt(position + 5) == 0x4D)) || ((reader.byteAt(position + 4) == 0x49) && (reader.byteAt(position + 5) == 0x49))))
+                    else if ((((await reader.byteAt(position)) == 0x4D) && ((await reader.byteAt(position + 1)) == 0x50) && ((await reader.byteAt(position + 2)) == 0x46) && ((await reader.byteAt(position + 3)) == 0))
+                        && ((((await reader.byteAt(position + 4)) == 0x4D) && ((await reader.byteAt(position + 5)) == 0x4D)) || (((await reader.byteAt(position + 4)) == 0x49) && ((await reader.byteAt(position + 5)) == 0x49))))
                     {
                         var mpoStream = new DataStream(reader, position + 4);
-                        var mpoTagList = getTiffInfo(mpoStream, IfdTagMPF);
+                        var mpoTagList = await getTiffInfo(mpoStream, IfdTagMPF);
                         for (i = 0; i < mpoTagList.length; i++) {
                             node.add("[0x" + mpoTagList[i].tagID.toString(16).toUpperCase() + "] " + getTiffTagName(mpoTagList[i].tagID, mpoTagList[i].ifdTag, mpoTagList[i].makerNoteType), mpoTagList[i].tagContents);
                         }
                     }
-                    else if ((segmentType == 0xE0) && (((reader.byteAt(position) == 0x4D) && (reader.byteAt(position + 1) == 0x4D)) || ((reader.byteAt(position) == 0x49) && (reader.byteAt(position + 1) == 0x49))))
+                    else if ((segmentType == 0xE0) && ((((await reader.byteAt(position)) == 0x4D) && ((await reader.byteAt(position + 1)) == 0x4D)) || (((await reader.byteAt(position)) == 0x49) && ((await reader.byteAt(position + 1)) == 0x49))))
                     {
                         //handle CIFF?
                     }
-                    else if ((segmentType == 0xEC) && (reader.getAsciiStringAt(position, 5) == "Ducky"))
+                    else if ((segmentType == 0xEC) && ((await reader.getAsciiStringAt(position, 5)) == "Ducky"))
                     {
                         //handle Ducky...
                         var duckyPtr = 5;
@@ -132,21 +132,21 @@ function parseJpgStructure(reader, offset)
                             subNode = node.add("Ducky");
                             while (duckyPtr < segmentLength)
                             {
-                                var duckTag = reader.ushortBeAt(position + duckyPtr); duckyPtr += 2;
-                                var duckLen = reader.ushortBeAt(position + duckyPtr); duckyPtr += 2;
+                                var duckTag = await reader.ushortBeAt(position + duckyPtr); duckyPtr += 2;
+                                var duckLen = await reader.ushortBeAt(position + duckyPtr); duckyPtr += 2;
                                 if (duckLen < 4096)
                                 {
                                     if (duckTag == 1)
                                     {
-                                        subNode.add("Quality", reader.uintBeAt(position + duckyPtr));
+                                        subNode.add("Quality", await reader.uintBeAt(position + duckyPtr));
                                     }
                                     else if (duckTag == 2)
                                     {
-                                        subNode.add("Comment", reader.getAsciiStringAt(position + duckyPtr, duckLen));
+                                        subNode.add("Comment", await reader.getAsciiStringAt(position + duckyPtr, duckLen));
                                     }
                                     else if (duckTag == 3)
                                     {
-                                        subNode.add("Copyright", reader.getAsciiStringAt(position + duckyPtr, duckLen));
+                                        subNode.add("Copyright", await reader.getAsciiStringAt(position + duckyPtr, duckLen));
                                     }
                                 }
                                 duckyPtr += duckLen;
@@ -155,24 +155,24 @@ function parseJpgStructure(reader, offset)
                             console.log("Error while reading Ducky: " + e);
                         }
                     }
-                    else if ((segmentType == 0xE0) && (reader.getAsciiStringAt(position, 4) == "JFIF"))
+                    else if ((segmentType == 0xE0) && ((await reader.getAsciiStringAt(position, 4)) == "JFIF"))
                     {
                         subNode = node.add("JFIF");
-                        subNode.add("Version", reader.byteAt(position + 5).toString() + "." + reader.byteAt(position + 6).toString());
-                        var dUnits = reader.byteAt(position + 7) == 0 ? "" : reader.byteAt(position + 7) == 1 ? "dpi" : "dpcm";
-                        var xDens = reader.ushortBeAt(position + 8);
-                        var yDens = reader.ushortBeAt(position + 10);
+                        subNode.add("Version", (await reader.byteAt(position + 5)).toString() + "." + (await reader.byteAt(position + 6)).toString());
+                        var dUnits = (await reader.byteAt(position + 7)) == 0 ? "" : (await reader.byteAt(position + 7)) == 1 ? "dpi" : "dpcm";
+                        var xDens = await reader.ushortBeAt(position + 8);
+                        var yDens = await reader.ushortBeAt(position + 10);
                         subNode.add("Horizontal density", xDens.toString() + " " + dUnits);
                         subNode.add("Vertical density", yDens.toString() + " " + dUnits);
                     }
-                    else if ((segmentType == 0xED) && (reader.getAsciiStringAt(position, 9) == "Photoshop"))
+                    else if ((segmentType == 0xED) && ((await reader.getAsciiStringAt(position, 9)) == "Photoshop"))
                     {
-                        subNode = node.add("Image resources", reader.getAsciiStringAt(position, 13));
-                        psdParseImageResources(reader, subNode, position + 14, segmentLength - 14);
+                        subNode = node.add("Image resources", await reader.getAsciiStringAt(position, 13));
+                        await psdParseImageResources(reader, subNode, position + 14, segmentLength - 14);
                     }
                 }
                 else if (segmentType == 0xFE) {
-                    var commentStr = reader.getAsciiStringAt(position, segmentLength);
+                    var commentStr = await reader.getAsciiStringAt(position, segmentLength);
                     node.add("Comment", commentStr);
                 }
             }

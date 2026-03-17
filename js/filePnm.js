@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function parseFormat(reader)
+async function parseFormat(reader)
 {
 	var results = new ResultNode("PNM structure");
     try {
@@ -24,7 +24,7 @@ function parseFormat(reader)
         var bmpWidth = -1, bmpHeight = -1, bmpMaxVal = -1;
         var i, token;
 
-        pnmType = pnmReadToken(stream);
+        pnmType = await pnmReadToken(stream);
         if (pnmType != "P1" && pnmType != "P2" && pnmType != "P3" && pnmType != "P4" && pnmType != "P5" && pnmType != "P6") {
             throw "Unrecognized bitmap type.";
         }
@@ -34,12 +34,12 @@ function parseFormat(reader)
         }
 
         while (!stream.eof()) {
-            token = pnmReadToken(stream);
+            token = await pnmReadToken(stream);
             if (token.length == 0) {
                 continue;
             }
             if (token.indexOf("#") == 0) {
-                commentLine = pnmReadLine(stream);
+                commentLine = await pnmReadLine(stream);
                 results.add("Comment", commentLine);
                 continue;
             }
@@ -77,12 +77,12 @@ function parseFormat(reader)
             if (pnmType == "P1") {
                 elementCount = 0;
                 while (!stream.eof()) {
-                    token = pnmReadToken(stream);
+                    token = await pnmReadToken(stream);
                     if (token.length == 0) {
                         continue;
                     }
                     if (token.indexOf("#") == 0) {
-                        commentLine = pnmReadLine(stream);
+                        commentLine = await pnmReadLine(stream);
                         results.add("Comment", commentLine);
                         continue;
                     }
@@ -99,12 +99,12 @@ function parseFormat(reader)
             else if (pnmType == "P2") {
                 elementCount = 0;
                 while (!stream.eof()) {
-                    token = pnmReadToken(stream);
+                    token = await pnmReadToken(stream);
                     if (token.length == 0) {
                         continue;
                     }
                     if (token.indexOf("#") == 0) {
-                        commentLine = pnmReadLine(stream);
+                        commentLine = await pnmReadLine(stream);
                         results.add("Comment", commentLine);
                         continue;
                     }
@@ -122,12 +122,12 @@ function parseFormat(reader)
                 elementCount = 0;
                 elementMod = 0;
                 while (!stream.eof()) {
-                    token = pnmReadToken(stream);
+                    token = await pnmReadToken(stream);
                     if (token.length == 0) {
                         continue;
                     }
                     if (token.indexOf("#") == 0) {
-                        commentLine = pnmReadLine(stream);
+                        commentLine = await pnmReadLine(stream);
                         results.add("Comment", commentLine);
                         continue;
                     }
@@ -147,7 +147,7 @@ function parseFormat(reader)
                 elementCount = 0;
                 var pixelBits;
                 while (true) {
-                    pixelBits = stream.readByte();
+                    pixelBits = await stream.readByte();
                     for (i = 7; i >= 0; i--)
                     {
                         elementVal = ((pixelBits & (1 << i)) == 0 ? 255 : 0);
@@ -166,7 +166,7 @@ function parseFormat(reader)
                 {
                     for (i = 0; i < numPixels; i++)
                     {
-                        elementVal = stream.readByte();
+                        elementVal = await stream.readByte();
                         bmpData[elementCount++] = elementVal;
                         bmpData[elementCount++] = elementVal;
                         bmpData[elementCount++] = elementVal;
@@ -177,8 +177,8 @@ function parseFormat(reader)
                 {
                     for (i = 0; i < numPixels; i++)
                     {
-                        elementVal = stream.readByte();
-                        stream.readByte();
+                        elementVal = await stream.readByte();
+                        await stream.readByte();
                         bmpData[elementCount++] = elementVal;
                         bmpData[elementCount++] = elementVal;
                         bmpData[elementCount++] = elementVal;
@@ -192,9 +192,9 @@ function parseFormat(reader)
                 {
                     for (i = 0; i < numPixels; i++)
                     {
-                        bmpData[elementCount++] = stream.readByte();
-                        bmpData[elementCount++] = stream.readByte();
-                        bmpData[elementCount++] = stream.readByte();
+                        bmpData[elementCount++] = await stream.readByte();
+                        bmpData[elementCount++] = await stream.readByte();
+                        bmpData[elementCount++] = await stream.readByte();
                         bmpData[elementCount++] = 255;
                     }
                 }
@@ -202,12 +202,12 @@ function parseFormat(reader)
                 {
                     for (i = 0; i < numPixels; i++)
                     {
-                        bmpData[elementCount++] = stream.readByte();
-                        stream.readByte();
-                        bmpData[elementCount++] = stream.readByte();
-                        stream.readByte();
-                        bmpData[elementCount++] = stream.readByte();
-                        stream.readByte();
+                        bmpData[elementCount++] = await stream.readByte();
+                        await stream.readByte();
+                        bmpData[elementCount++] = await stream.readByte();
+                        await stream.readByte();
+                        bmpData[elementCount++] = await stream.readByte();
+                        await stream.readByte();
                         bmpData[elementCount++] = 255;
                     }
                 }
@@ -225,13 +225,13 @@ function parseFormat(reader)
     return results;
 }
 
-function pnmReadToken(stream)
+async function pnmReadToken(stream)
 {
     var str = "";
     var nextChar;
     var tokenStarted = false;
     while (!stream.eof() && str.length < 16) {
-        nextChar = stream.readByte();
+        nextChar = await stream.readByte();
         if (nextChar == 0x9 || nextChar == 0x20 || nextChar == 0xA || nextChar == 0xD) {
             if (tokenStarted) {
                 break;
@@ -244,12 +244,12 @@ function pnmReadToken(stream)
     return str;
 }
 
-function pnmReadLine(stream)
+async function pnmReadLine(stream)
 {
     var str = "";
     var nextChar;
     while (!stream.eof()) {
-        nextChar = stream.readByte();
+        nextChar = await stream.readByte();
         if (nextChar == 0xA || nextChar == 0xD) {
             break;
         }
